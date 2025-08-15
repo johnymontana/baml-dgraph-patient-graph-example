@@ -31,6 +31,9 @@ full-import: ## Import FLIR parquet data into DGraph
 test-full-import: ## Test FLIR parquet import with limited records
 	uv run python scripts/test_parquet_import.py
 
+test-duplicate-prevention: ## Test duplicate prevention functionality
+	uv run python scripts/test_duplicate_prevention.py
+
 pipeline: extract import ## Run the complete pipeline (extract + import)
 
 start-dgraph: ## Start DGraph using Docker

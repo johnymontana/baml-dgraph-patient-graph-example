@@ -118,23 +118,32 @@ def test_dgraph_connection():
     print("\n🔍 Testing DGraph connection...")
     
     load_dotenv()
-    dgraph_conn = os.getenv('DGRAPH_CONNECTION_STRING', 'dgraph://localhost:9080')
+    dgraph_conn = os.getenv('DGRAPH_CONNECTION_STRING')
     
-    # Parse connection string
-    if dgraph_conn.startswith('dgraph://'):
-        host_port = dgraph_conn[10:]  # Remove 'dgraph://'
-    else:
-        host_port = dgraph_conn
+    if not dgraph_conn:
+        print("❌ DGRAPH_CONNECTION_STRING not set in environment")
+        return False
     
     try:
         import pydgraph
-        client_stub = pydgraph.DgraphClientStub(host_port)
-        client = pydgraph.DgraphClient(client_stub)
+        
+        # Use pydgraph.open() directly with the connection string
+        # This matches the working approach from dgraph_importer.py
+        print(f"🔌 Testing connection to: {dgraph_conn}")
+        
+        client = pydgraph.open(dgraph_conn)
         
         # Try a simple query to test connection
         txn = client.txn(read_only=True)
         try:
-            result = txn.query("{}")
+            # Use a valid DQL query - query for any node with dgraph.type
+            result = txn.query("""
+            {
+                test(func: has(dgraph.type)) {
+                    count(uid)
+                }
+            }
+            """)
             print("✅ DGraph connection successful")
             return True
         finally:
@@ -143,6 +152,7 @@ def test_dgraph_connection():
     except Exception as e:
         print(f"❌ DGraph connection failed: {e}")
         print("Make sure DGraph is running and accessible")
+        print("Note: Connection string format should be: dgraph://host:port or dgraph://host:port?params")
         return False
 
 def main():

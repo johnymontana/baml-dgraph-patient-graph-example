@@ -126,7 +126,6 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # DGraph Configuration
 DGRAPH_CONNECTION_STRING=dgraph://localhost:9080
-DGRAPH_ALPHA_HOST=localhost:8080
 ```
 
 ### DGraph Connection
