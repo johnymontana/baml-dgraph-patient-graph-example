@@ -3,7 +3,8 @@
 Import FLIR Parquet Data into DGraph
 
 This script reads the FLIR parquet data file, extracts structured medical data
-from the clinical notes using BAML, and then imports the extracted data into DGraph.
+from the clinical notes using BAML, and immediately imports each extracted record
+into DGraph for better memory efficiency and real-time feedback.
 """
 
 import json
@@ -33,10 +34,10 @@ def pydantic_to_dict(obj):
     else:
         return obj
 
-async def process_parquet_data_with_baml():
-    """Process the parquet data using BAML to extract structured medical data."""
-    print("📊 Processing FLIR Parquet Data with BAML")
-    print("=" * 60)
+async def process_and_import_parquet_data():
+    """Process the parquet data using BAML and immediately import to DGraph."""
+    print("📊 Processing FLIR Parquet Data with BAML and Importing to DGraph")
+    print("=" * 70)
     
     # Read the parquet file
     parquet_path = Path("data/flir-data.parquet")
@@ -49,12 +50,25 @@ async def process_parquet_data_with_baml():
         print(f"✅ Loaded parquet file with {len(df)} records")
         print(f"📋 Columns: {', '.join(df.columns)}")
         
-        # Process the data using BAML
-        extracted_records = []
+        # Initialize DGraph importer once
+        print("\n🔌 Initializing DGraph connection...")
+        importer = DGraphMedicalImporter()
+        
+        # Process and import records one by one
+        successful_extractions = 0
+        successful_imports = 0
+        failed_extractions = 0
+        failed_imports = 0
+        
+        print(f"\n🔄 Processing and importing {len(df)} records...")
+        print("-" * 50)
         
         for idx, row in df.iterrows():
             if idx % 100 == 0:
-                print(f"   Processing record {idx + 1}/{len(df)}")
+                print(f"📊 Progress: {idx + 1}/{len(df)} records processed")
+                print(f"   ✅ Extracted: {successful_extractions}, ❌ Failed: {failed_extractions}")
+                print(f"   ✅ Imported: {successful_imports}, ❌ Failed: {failed_imports}")
+                print("-" * 50)
             
             # Get the clinical note
             clinical_note = row.get('note', '')
@@ -76,70 +90,67 @@ async def process_parquet_data_with_baml():
                 record['metadata']['record_id'] = idx
                 record['metadata']['import_timestamp'] = pd.Timestamp.now().isoformat()
                 
-                extracted_records.append(record)
+                successful_extractions += 1
                 
-                if idx % 100 == 0:
-                    print(f"     ✅ Extracted data for record {idx + 1}")
+                # Immediately import to DGraph
+                try:
+                    importer.import_medical_record(record)
+                    successful_imports += 1
+                    
+                    if idx % 100 == 0:
+                        print(f"   📥 Record {idx + 1}: ✅ Extracted and ✅ Imported")
+                    
+                except Exception as import_error:
+                    failed_imports += 1
+                    print(f"   📥 Record {idx + 1}: ✅ Extracted but ❌ Import failed: {import_error}")
                 
-            except Exception as e:
-                print(f"     ⚠️  Warning: Failed to extract data from record {idx}: {e}")
+            except Exception as extraction_error:
+                failed_extractions += 1
+                print(f"   🔍 Record {idx + 1}: ❌ Extraction failed: {extraction_error}")
                 continue
         
-        print(f"✅ Successfully extracted data from {len(extracted_records)} records")
-        return extracted_records
+        # Final summary
+        print("\n" + "=" * 70)
+        print("📊 FINAL PROCESSING SUMMARY")
+        print("=" * 70)
+        print(f"📋 Total records in parquet: {len(df)}")
+        print(f"✅ Successful extractions: {successful_extractions}")
+        print(f"❌ Failed extractions: {failed_extractions}")
+        print(f"✅ Successful imports: {successful_imports}")
+        print(f"❌ Failed imports: {failed_imports}")
+        print(f"📈 Success rate (extraction): {successful_extractions/(successful_extractions+failed_extractions)*100:.1f}%")
+        print(f"📈 Success rate (import): {successful_imports/(successful_imports+failed_imports)*100:.1f}%")
+        
+        # Clean up
+        importer.close()
+        
+        return {
+            'total_records': len(df),
+            'successful_extractions': successful_extractions,
+            'failed_extractions': failed_extractions,
+            'successful_imports': successful_imports,
+            'failed_imports': failed_imports
+        }
         
     except Exception as e:
         print(f"❌ Error processing parquet file: {e}")
         return None
 
-def import_to_dgraph(records):
-    """Import the extracted records into DGraph."""
-    if not records:
-        print("❌ No records to import")
-        return
-    
-    print("\n🗃️  Importing Extracted Data to DGraph")
-    print("=" * 60)
-    
-    try:
-        # Initialize DGraph importer
-        importer = DGraphMedicalImporter()
-        
-        # Import records
-        successful_imports = 0
-        for i, record in enumerate(records):
-            if i % 100 == 0:
-                print(f"📥 Importing record {i + 1}/{len(records)}")
-            
-            try:
-                importer.import_medical_record(record)
-                successful_imports += 1
-            except Exception as e:
-                print(f"⚠️  Warning: Failed to import record {i}: {e}")
-                continue
-        
-        print(f"✅ Successfully imported {successful_imports}/{len(records)} records to DGraph")
-        
-        # Clean up
-        importer.close()
-        
-    except Exception as e:
-        print(f"❌ Error importing to DGraph: {e}")
-
 async def main():
     """Main function to process and import parquet data."""
     print("🏥 FLIR Parquet Data Import to DGraph (via BAML)")
     print("=" * 70)
+    print("🔄 Processing and importing records in real-time...")
+    print("💡 Each record is extracted and immediately imported to DGraph")
+    print("💾 This approach provides better memory efficiency and real-time feedback")
+    print("=" * 70)
     
-    # Process the parquet data using BAML
-    records = await process_parquet_data_with_baml()
+    # Process and import the parquet data
+    results = await process_and_import_parquet_data()
     
-    if records:
-        # Import to DGraph
-        import_to_dgraph(records)
-        
+    if results:
         print("\n🎉 FLIR Parquet Data Import Complete!")
-        print(f"📊 Total records processed: {len(records)}")
+        print(f"📊 Final results: {results['successful_imports']} records successfully imported to DGraph")
     else:
         print("\n❌ Failed to process parquet data")
 
