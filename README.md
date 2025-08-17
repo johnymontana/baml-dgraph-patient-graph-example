@@ -148,7 +148,25 @@ docker run -it -p 8080:8080 -p 9080:9080 dgraph/standalone:latest
 # Or connect to existing DGraph instance
 ```
 
-### 2. Extract Medical Data
+### 2. FLIR Parquet Data Import
+
+The project now supports importing large-scale medical data from FLIR parquet files:
+
+```bash
+# Test import with first 3 records
+make test-full-import
+
+# Full import of all records (2,726 records)
+make full-import
+```
+
+This will:
+- Load the FLIR parquet file with medical records
+- Extract structured data using BAML and GPT-4
+- Import each record into DGraph with proper relationships
+- Show real-time progress and import status
+
+### 3. Extract Medical Data
 
 ```bash
 # Run BAML extraction on sample texts
@@ -161,7 +179,7 @@ This will:
 - Save results to JSON files
 - Create `all_medical_records.json` for DGraph import
 
-### 3. Import to DGraph
+### 4. Import to DGraph
 
 ```bash
 # Import extracted data into DGraph
@@ -174,7 +192,7 @@ This will:
 - Create relationships between entities
 - Run test queries to verify import
 
-### 4. Run Complete Demo Workflow
+### 5. Run Complete Demo Workflow
 
 ```bash
 # Run the complete end-to-end demonstration
@@ -226,57 +244,228 @@ The system extracts structured data like:
 ```json
 {
   "patient": {
-    "name": "Mr. Fernando Amos Breitenberg",
-    "marital_status": "married"
+    "name": "Mr. Hobert Armand Bashirian",
+    "patient_id": null,
+    "marital_status": "widowed",
+    "age": 34,
+    "gender": null,
+    "date_of_birth": "1988-11-12"
   },
-  "visits": [{
-    "visit_type": "well child visit",
-    "start_time": "December 23, 1992, at 01:08:42",
-    "end_time": "01:23:42",
-    "timezone": "+01:00",
-    "provider": {
-      "name": "Dr. Trent Krajcik"
+  "visits": [
+    {
+      "visit_type": "health questionnaire",
+      "start_time": "2023-02-11T02:48:00+01:00",
+      "end_time": null,
+      "timezone": "+01:00",
+      "location": null,
+      "provider": null,
+      "notes": "Evaluated wellbeing"
     }
-  }],
-  "allergies": [{
-    "allergen": "shellfish",
-    "confirmed_date": "April 2, 1994, at 12:08:42"
-  }]
+  ],
+  "allergies": [],
+  "provider_facility": null,
+  "extracted_entities": [
+    "intimate partner abuse",
+    "condition",
+    "health questionnaire"
+  ]
+}
+```
+
+### Complex Medical Record Example
+
+```json
+{
+  "patient": {
+    "name": "Mrs. Shanon Wolff",
+    "marital_status": null,
+    "age": 31,
+    "gender": "Female",
+    "date_of_birth": "January 22, 1992"
+  },
+  "visits": [
+    {
+      "visit_type": "Triglycerides Measurement",
+      "start_time": "April 5, 2023, 14:14:00",
+      "end_time": null,
+      "timezone": "GMT+2",
+      "location": null,
+      "provider": null,
+      "notes": null
+    },
+    {
+      "visit_type": "Tobacco smoking status assessment",
+      "start_time": "April 5, 2023, 14:14:00",
+      "end_time": null,
+      "timezone": "GMT+2",
+      "location": null,
+      "provider": null,
+      "notes": null
+    }
+  ],
+  "allergies": [],
+  "provider_facility": null,
+  "extracted_entities": []
 }
 ```
 
 ## DGraph Schema
 
-The system creates a comprehensive graph schema with:
+The system creates a comprehensive graph schema with the following entity types and relationships:
 
-- **Patient nodes**: Core patient information
-- **Medical Visit nodes**: Visit details with timestamps
-- **Provider nodes**: Healthcare provider information
-- **Allergy nodes**: Patient allergy records
-- **Address nodes**: Facility and provider locations
-- **Extraction Record nodes**: Metadata about data extraction
+### Core Entities
 
-All entities are properly linked with bidirectional relationships for efficient querying.
+- **Patient nodes**: Core patient information (name, age, gender, marital status, date of birth)
+- **Medical Visit nodes**: Visit details with timestamps, types, and notes
+- **Provider nodes**: Healthcare provider information (name, ID, specialty, role)
+- **Allergy nodes**: Patient allergy records (allergen, severity, reaction type, confirmed date)
+- **Address nodes**: Facility and provider locations (street, city, state, zip, country)
+- **Organization nodes**: Healthcare facilities, clinics, and labs
+- **Substance nodes**: Medications, environmental factors, and other substances
+- **Medical Condition nodes**: Patient conditions and diagnoses
+- **Immunization nodes**: Vaccine records and administration details
+- **Clinical Observation nodes**: Lab results, vital signs, and measurements
+- **Medical Procedure nodes**: Medical procedures and interventions
+- **Contact Information nodes**: Patient contact details and preferences
+- **Social History nodes**: Employment, education, insurance, and lifestyle factors
+- **Extraction Record nodes**: Metadata about data extraction process
+
+### Key Relationships
+
+- `has_visit` / `visit_of`: Links patients to medical visits
+- `has_allergy` / `allergy_of`: Links patients to allergy records
+- `has_immunization` / `immunization_of`: Links patients to immunization records
+- `has_condition` / `condition_of`: Links patients to medical conditions
+- `lives_in` / `location_of_patient`: Links patients to addresses
+- `treated_by` / `treats`: Links patients to healthcare providers
+- `works_at` / `employs_provider`: Links providers to organizations
+- `contains_patient`: Links extraction records to patients
+
+### Schema Features
+
+- **Full-text indexing** on key fields like names, notes, and descriptions
+- **Exact indexing** on identifiers, dates, and categorical fields
+- **Bidirectional relationships** for efficient querying in both directions
+- **Proper data types** (string, int, bool, float) with appropriate indexing
+- **Upsert support** for duplicate prevention and data consistency
 
 ## Querying Data
 
-After import, you can query the graph using DGraph's GraphQL+ syntax:
+After import, you can query the graph using DGraph's DQL syntax. Here are some practical examples:
 
-```graphql
+### Basic Patient Information Query
+
+```dql
 {
-  patient(func: eq(name, "Mr. Fernando Amos Breitenberg")) {
+  patient(func: eq(name, "Mr. Hobert Armand Bashirian")) {
     name
+    age
+    marital_status
+    date_of_birth
     has_visit {
       visit_type
       start_time
-      conducted_by {
-        name
-      }
+      timezone
+      notes
     }
     has_allergy {
       allergen
       severity
+      reaction_type
+      confirmed_date
     }
+  }
+}
+```
+
+### Complex Relationship Queries
+
+#### Find Patients with Multiple Visit Types
+```dql
+{
+  patients(func: has(has_visit)) @filter(gt(count(has_visit), 1)) {
+    name
+    age
+    has_visit {
+      visit_type
+      start_time
+      notes
+    }
+  }
+}
+```
+
+#### Allergy Analysis by Severity
+```dql
+{
+  allergies(func: eq(dgraph.type, "Allergy")) @filter(eq(severity, "severe")) {
+    allergen
+    severity
+    reaction_type
+    allergy_of {
+      name
+      age
+      gender
+    }
+  }
+}
+```
+
+#### Temporal Analysis of Visits
+```dql
+{
+  visits(func: eq(dgraph.type, "MedicalVisit")) @filter(ge(start_time, "2023-01-01")) {
+    visit_type
+    start_time
+    timezone
+    visit_of {
+      name
+      age
+    }
+  }
+}
+```
+
+#### Provider and Organization Relationships
+```dql
+{
+  providers(func: eq(dgraph.type, "MedicalProvider")) {
+    name
+    specialty
+    treats {
+      name
+      age
+    }
+    works_at {
+      name
+      type
+    }
+  }
+}
+```
+
+### Advanced Analytics Queries
+
+#### Patient Demographics Analysis
+```dql
+{
+  patients(func: eq(dgraph.type, "Patient")) {
+    name
+    age
+    gender
+    marital_status
+    count(has_visit)
+    count(has_allergy)
+  }
+}
+```
+
+#### Visit Type Distribution
+```dql
+{
+  visit_types(func: eq(dgraph.type, "MedicalVisit")) {
+    visit_type
+    count(visit_of)
   }
 }
 ```
@@ -391,81 +580,109 @@ For issues related to:
 
 ## Graph RAG Enabled Medical Analysis Sample Topics
 
-### Age and Visit Patterns:
-
+### Patient Demographics & Patterns
+#### Age and Visit Analysis:
 - What is the age distribution of patients and how does it correlate with visit frequency?
 - Do older patients have more medical visits or different types of visits?
 - What's the average time between visits for patients with multiple encounters?
 
-### Gender-Based Healthcare Utilization:
-
+#### Gender-Based Healthcare Utilization:
 - Are there differences in visit types between male and female patients?
 - Do certain medical procedures or assessments show gender-based patterns?
+- How do gender differences affect allergy patterns and visit frequency?
 
 ### Allergy Management & Safety
 #### Allergy Severity Analysis:
-
 - What's the distribution of allergy severities across the patient population?
 - Which allergens are associated with the most severe reactions?
 - How many patients have multiple allergies, and what are common combinations?
 
 #### Allergy Documentation Quality:
-
 - Which allergy records have complete documentation (confirmed dates, severity, reaction types)?
 - Are there gaps in allergy documentation that could impact patient safety?
+- Which patients need allergy documentation updates?
 
 ### Visit Analysis & Care Coordination
 #### Visit Type Patterns:
-
-- What are the most common types of medical visits?
+- What are the most common types of medical visits (immunizations, observations, procedures)?
 - Which patients have the most diverse visit types (indicating complex care needs)?
 - Are there seasonal patterns in immunizations or other visit types?
 
-#### Care Continuity:
-
+#### Care Continuity & Timing:
 - Which patients have had visits spanning multiple years?
 - Are there patients with gaps in care that might need follow-up?
-- What's the typical duration of medical visits by type?
+- What's the typical duration and frequency of different visit types?
 
 ### Temporal Healthcare Trends
 #### Historical Care Patterns:
-
 - How has the frequency of different visit types changed over time?
 - Are there patients with very old allergy confirmations that might need updating?
 - What's the timeline of care for patients with multiple visits?
 
+#### Seasonal & Time-Based Analysis:
+- Are there patterns in visit timing (morning vs. afternoon, weekdays vs. weekends)?
+- Do certain visit types cluster around specific times of year?
+
 ### Data Quality & Completeness
 #### Missing Information Analysis:
-
 - Which patients lack complete demographic information?
 - How many patients have visits but no associated provider information?
 - Are there patients missing critical allergy or contact information?
 
+#### Data Consistency Checks:
+- Which patients have inconsistent information across visits?
+- Are there duplicate or conflicting allergy records?
+
 ### Geographic Healthcare Access
 #### Location-Based Care:
-
 - Are patients clustered around certain medical facilities?
 - What's the geographic distribution of different visit types?
 - Are there areas with limited healthcare access based on patient addresses?
 
-### Risk Stratification
-#### High-Risk Patient Identification:
+#### Facility Utilization:
+- Which healthcare facilities serve the most diverse patient populations?
+- Are there geographic patterns in visit types or provider specialties?
 
+### Risk Stratification & Clinical Decision Support
+#### High-Risk Patient Identification:
 - Which patients have multiple severe allergies that require special monitoring?
 - Are there patients with concerning gaps between visits who might need outreach?
 - Which patients have complex medical histories (multiple visit types + allergies)?
 
+#### Medication & Allergy Safety:
+- Are there patients with drug allergies who had medication-related visits?
+- Which patients might benefit from allergy testing based on their visit patterns?
+- Are there potential drug-allergy interactions that need attention?
+
+### Advanced Analytics Opportunities
+#### Population Health Insights:
+- What are the most common health conditions in different age groups?
+- How do visit patterns correlate with patient demographics?
+- Which patient populations have the highest healthcare utilization?
+
+#### Quality Metrics:
+- What's the completeness of documentation across different visit types?
+- How do provider specialties correlate with visit outcomes?
+- Are there patterns in follow-up care after certain visit types?
+
 ### Sample Queries You Could Run:
 
+#### Patient Safety Queries:
 - **"Find patients with multiple severe allergies and their most recent visit"**
 - **"Identify patients who haven't had visits in over 2 years"**
+- **"Find patients with shellfish allergies who had visits but no allergy warnings documented"**
+
+#### Care Quality Queries:
 - **"Analyze the relationship between patient age and number of allergies"**
 - **"Find all immunization visits and check if patients have documented allergies"**
 - **"Identify patients with incomplete allergy documentation"**
+
+#### Complex Care Analysis:
 - **"Find patients with the most complex care patterns (multiple visit types)"**
+- **"Which patients have visits spanning multiple years with different providers?"**
+- **"Analyze care continuity for patients with chronic conditions"**
 
-### Clinical Decision Support Questions:
-
-- Are there patients with shellfish allergies who had visits but no allergy warnings documented?
-- Which patients might benefit from allergy testing based on their visit patterns?
-- Are there medication-related visits for patients with drug allergies?
+#### Clinical Decision Support:
+- **"Which patients might benefit from allergy testing based on their visit patterns?"**
+- **"Are there medication-related visits for patients with drug allergies?"**
+- **"Find patients with gaps in preventive care (immunizations, screenings)"**
