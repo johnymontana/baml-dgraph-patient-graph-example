@@ -21,9 +21,12 @@ class DGraphMedicalImporter:
         self.setup_schema()
     
     def setup_schema(self):
-        """Setup DGraph schema for medical data with upsert support."""
+        """Setup DGraph schema for enhanced medical knowledge graph with upsert support."""
         schema = """
-        # Patient node
+        # Enhanced Medical Knowledge Graph Schema
+        # Aligned with knowledge graph structure and additional medical entities
+        
+        # Patient node - Central entity
         type Patient {
             name: string
             patient_id: string
@@ -31,29 +34,35 @@ class DGraphMedicalImporter:
             age: int
             gender: string
             date_of_birth: string
+            multiple_birth: bool
+            primary_language: string
+            
+            # Relationships to other entities
             has_visit: [uid]
             has_allergy: [uid]
-            treated_at: [uid]
+            has_immunization: [uid]
+            has_condition: [uid]
+            has_observation: [uid]
+            has_procedure: [uid]
+            lives_in: [uid]
+            treated_by: [uid]
+            has_contact_info: [uid]
+            has_social_history: [uid]
         }
         
-        # Medical Visit node  
-        type MedicalVisit {
-            visit_type: string
-            start_time: string
-            end_time: string
-            timezone: string
-            location: string
-            notes: string
-            conducted_by: [uid]
-            visit_of: [uid]
-        }
-        
-        # Medical Provider node
+        # Practitioner/Provider node
         type MedicalProvider {
             name: string
             provider_id: string
             specialty: string
+            role: string
+            organization: string
+            
+            # Relationships
+            treats: [uid]
             conducts_visit: [uid]
+            performs_procedure: [uid]
+            administers_immunization: [uid]
             works_at: [uid]
         }
         
@@ -63,8 +72,116 @@ class DGraphMedicalImporter:
             severity: string
             reaction_type: string
             confirmed_date: string
+            status: string
             notes: string
+            
+            # Relationships
             allergy_of: [uid]
+            caused_by: [uid]
+        }
+        
+        # Substance node - Medications, environmental factors, etc.
+        type Substance {
+            name: string
+            type: string
+            description: string
+            active_ingredients: [string]
+            dosage: string
+            frequency: string
+            
+            # Relationships
+            causes_allergy: [uid]
+            used_in_procedure: [uid]
+            administered_as_immunization: [uid]
+        }
+        
+        # Immunization node
+        type Immunization {
+            vaccine_name: string
+            vaccine_type: string
+            administration_date: string
+            status: string
+            lot_number: string
+            manufacturer: string
+            notes: string
+            
+            # Relationships
+            immunization_of: [uid]
+            administered_by: [uid]
+            administered_at: [uid]
+            substance: [uid]
+        }
+        
+        # Clinical Observation node - Lab results, vital signs, measurements
+        type ClinicalObservation {
+            observation_type: string
+            value: string
+            unit: string
+            status: string
+            effective_time: string
+            issued_time: string
+            category: string
+            code: string
+            interpretation: string
+            notes: string
+            
+            # Relationships
+            observation_of: [uid]
+            conducted_during: [uid]
+            performed_by: [uid]
+        }
+        
+        # Medical Procedure node
+        type MedicalProcedure {
+            procedure_type: string
+            status: string
+            start_time: string
+            end_time: string
+            duration: string
+            reason: string
+            outcome: string
+            notes: string
+            
+            # Relationships
+            procedure_of: [uid]
+            performed_by: [uid]
+            performed_at: [uid]
+            uses_substance: [uid]
+        }
+        
+        # Medical Condition node
+        type MedicalCondition {
+            condition_name: string
+            status: string
+            onset_date: string
+            severity: string
+            category: string
+            notes: string
+            
+            # Relationships
+            condition_of: [uid]
+            diagnosed_during: [uid]
+            diagnosed_by: [uid]
+        }
+        
+        # Medical Visit node
+        type MedicalVisit {
+            visit_type: string
+            start_time: string
+            end_time: string
+            timezone: string
+            status: string
+            classification: string
+            reason: string
+            notes: string
+            
+            # Relationships
+            visit_of: [uid]
+            conducted_by: [uid]
+            conducted_at: [uid]
+            includes_procedure: [uid]
+            includes_observation: [uid]
+            includes_immunization: [uid]
         }
         
         # Address/Facility node
@@ -74,8 +191,57 @@ class DGraphMedicalImporter:
             state: string
             zip_code: string
             country: string
-            hosts_provider: [uid]
+            timezone: string
+            
+            # Relationships
+            location_of_patient: [uid]
+            location_of_provider: [uid]
+            location_of_organization: [uid]
+            location_of_visit: [uid]
+            location_of_procedure: [uid]
+        }
+        
+        # Organization node - Healthcare facilities, clinics, labs
+        type Organization {
+            name: string
+            organization_id: string
+            type: string
+            phone: string
+            website: string
+            specialties: [string]
+            
+            # Relationships
+            employs_provider: [uid]
             hosts_visit: [uid]
+            hosts_procedure: [uid]
+            located_at: [uid]
+        }
+        
+        # Contact Information node
+        type ContactInfo {
+            phone_number: string
+            email: string
+            preferred_language: string
+            communication_preferences: string
+            
+            # Relationships
+            contact_of: [uid]
+        }
+        
+        # Social History node
+        type SocialHistory {
+            employment_status: string
+            education_level: string
+            insurance_provider: string
+            annual_income: string
+            housing_status: string
+            transportation_access: bool
+            social_support_level: string
+            risk_factors: [string]
+            lifestyle_factors: [string]
+            
+            # Relationships
+            social_history_of: [uid]
         }
         
         # Extraction metadata
@@ -84,30 +250,36 @@ class DGraphMedicalImporter:
             extracted_at: string
             text_length: int
             extraction_version: string
+            fhir_resource_type: string
+            extraction_confidence: float
             contains_patient: [uid]
         }
         
-        # Predicates with upsert support for duplicate prevention
+        # All predicates with proper indexing and upsert support
         name: string @index(term, fulltext) @upsert .
         patient_id: string @index(exact) @upsert .
         provider_id: string @index(exact) @upsert .
+        organization_id: string @index(exact) @upsert .
         source_id: string @index(exact) @upsert .
         marital_status: string @index(exact) .
         age: int @index(int) .
         gender: string @index(exact) .
         date_of_birth: string @index(exact) .
+        multiple_birth: bool @index(bool) .
+        primary_language: string @index(exact) .
         visit_type: string @index(exact) .
         start_time: string @index(exact) .
         end_time: string @index(exact) .
         timezone: string @index(exact) .
-        location: string @index(term, fulltext) .
+        status: string @index(exact) .
+        classification: string @index(exact) .
         specialty: string @index(exact) .
-        allergen: string @index(term, fulltext) @upsert .
+        allergen: string @index(exact) .
         severity: string @index(exact) .
         reaction_type: string @index(exact) .
         confirmed_date: string @index(exact) .
         notes: string @index(fulltext) .
-        street: string @index(fulltext) .
+        street: string @index(exact) .
         city: string @index(exact) .
         state: string @index(exact) .
         zip_code: string @index(exact) .
@@ -115,19 +287,115 @@ class DGraphMedicalImporter:
         extracted_at: string @index(exact) .
         text_length: int @index(int) .
         extraction_version: string @index(exact) .
+        vaccine_name: string @index(exact) .
+        vaccine_type: string @index(exact) .
+        administration_date: string @index(exact) .
+        lot_number: string @index(exact) .
+        manufacturer: string @index(exact) .
+        procedure_type: string @index(exact) .
+        reason: string @index(fulltext) .
+        outcome: string @index(exact) .
+        observation_type: string @index(exact) .
+        value: string @index(fulltext) .
+        unit: string @index(exact) .
+        effective_time: string @index(exact) .
+        issued_time: string @index(exact) .
+        category: string @index(exact) .
+        code: string @index(exact) .
+        interpretation: string @index(exact) .
+        condition_name: string @index(exact) .
+        condition_status: string @index(exact) .
+        onset_date: string @index(exact) .
+        organization_type: string @index(exact) .
+        phone: string @index(exact) .
+        website: string @index(fulltext) .
+        employment_status: string @index(exact) .
+        education_level: string @index(exact) .
+        insurance_provider: string @index(exact) .
+        annual_income: string @index(exact) .
+        housing_status: string @index(exact) .
+        transportation_access: bool @index(bool) .
+        social_support_level: string @index(exact) .
+        risk_factors: string @index(exact) .
+        lifestyle_factors: string @index(exact) .
+        substance_name: string @index(exact) .
+        substance_type: string @index(exact) .
+        active_ingredients: string @index(exact) .
+        dosage: string @index(exact) .
+        frequency: string @index(exact) .
+        role: string @index(exact) .
+        fhir_resource_type: string @index(exact) .
+        extraction_confidence: float @index(float) .
+        type: string @index(exact) .
+        phone_number: string @index(exact) .
+        organization: string @index(exact) .
+        description: string @index(fulltext) .
+        duration: string @index(exact) .
+        location: string @index(exact) .
+        provider_name: string @index(exact) .
+        organization_name: string @index(exact) .
+        source: string @index(exact) .
+        record_id: string @index(exact) .
+        import_timestamp: string @index(exact) .
+        treated_at: [uid] @reverse .
         
-        # Relationships
+        # All relationships with reverse edges
         has_visit: [uid] @reverse .
         has_allergy: [uid] @reverse .
-        treated_at: [uid] @reverse .
-        conducted_by: [uid] @reverse .
-        visit_of: [uid] @reverse .
+        has_immunization: [uid] @reverse .
+        has_condition: [uid] @reverse .
+        has_observation: [uid] @reverse .
+        has_procedure: [uid] @reverse .
+        lives_in: [uid] @reverse .
+        treated_by: [uid] @reverse .
+        has_contact_info: [uid] @reverse .
+        has_social_history: [uid] @reverse .
+        treats: [uid] @reverse .
         conducts_visit: [uid] @reverse .
+        performs_procedure: [uid] @reverse .
+        administers_immunization: [uid] @reverse .
         works_at: [uid] @reverse .
         allergy_of: [uid] @reverse .
-        hosts_provider: [uid] @reverse .
+        caused_by: [uid] @reverse .
+        causes_allergy: [uid] @reverse .
+        used_in_procedure: [uid] @reverse .
+        administered_as_immunization: [uid] @reverse .
+        immunization_of: [uid] @reverse .
+        administered_by: [uid] @reverse .
+        administered_at: [uid] @reverse .
+        substance: [uid] @reverse .
+        observation_of: [uid] @reverse .
+        conducted_during: [uid] @reverse .
+        performed_by: [uid] @reverse .
+        procedure_of: [uid] @reverse .
+        performed_at: [uid] @reverse .
+        uses_substance: [uid] @reverse .
+        condition_of: [uid] @reverse .
+        diagnosed_during: [uid] @reverse .
+        diagnosed_by: [uid] @reverse .
+        visit_of: [uid] @reverse .
+        includes_procedure: [uid] @reverse .
+        includes_observation: [uid] @reverse .
+        includes_immunization: [uid] @reverse .
+        location_of_patient: [uid] @reverse .
+        location_of_provider: [uid] @reverse .
+        location_of_organization: [uid] @reverse .
+        location_of_visit: [uid] @reverse .
+        location_of_procedure: [uid] @reverse .
+        employs_provider: [uid] @reverse .
         hosts_visit: [uid] @reverse .
+        hosts_procedure: [uid] @reverse .
+        located_at: [uid] @reverse .
+        contact_of: [uid] @reverse .
+        social_history_of: [uid] @reverse .
         contains_patient: [uid] @reverse .
+        conducted_by: [uid] @reverse .
+        has_provider: [uid] @reverse .
+        provider_of: [uid] @reverse .
+        has_organization: [uid] @reverse .
+        organization_of: [uid] @reverse .
+        has_substance: [uid] @reverse .
+        substance_of: [uid] @reverse .
         """
         
         print("Setting up DGraph schema...")
@@ -183,7 +451,8 @@ class DGraphMedicalImporter:
         query_parts = []
         
         # Check for existing patient by patient_id
-        query_parts.append(f'patient(func: eq(patient_id, "{record["patient"]["patient_id"]}")) {{ uid }}')
+        if record["patient"].get("patient_id"):
+            query_parts.append(f'patient(func: eq(patient_id, "{record["patient"]["patient_id"]}")) {{ uid }}')
         
         # Check for existing allergies by allergen name
         if "allergies" in record and record["allergies"]:
@@ -192,12 +461,40 @@ class DGraphMedicalImporter:
                 if allergen:
                     query_parts.append(f'allergy_{i}(func: eq(allergen, "{allergen}")) @filter(eq(dgraph.type, "Allergy")) {{ uid }}')
         
+        # Check for existing immunizations by vaccine name
+        if "immunizations" in record and record["immunizations"]:
+            for i, immunization in enumerate(record["immunizations"]):
+                vaccine_name = immunization.get("vaccine_name")
+                if vaccine_name:
+                    query_parts.append(f'immunization_{i}(func: eq(vaccine_name, "{vaccine_name}")) @filter(eq(dgraph.type, "Immunization")) {{ uid }}')
+        
+        # Check for existing substances by name
+        if "substances" in record and record["substances"]:
+            for i, substance in enumerate(record["substances"]):
+                substance_name = substance.get("name")
+                if substance_name:
+                    query_parts.append(f'substance_{i}(func: eq(substance_name, "{substance_name}")) @filter(eq(dgraph.type, "Substance")) {{ uid }}')
+        
+        # Check for existing conditions by condition name
+        if "conditions" in record and record["conditions"]:
+            for i, condition in enumerate(record["conditions"]):
+                condition_name = condition.get("condition_name")
+                if condition_name:
+                    query_parts.append(f'condition_{i}(func: eq(condition_name, "{condition_name}")) @filter(eq(dgraph.type, "MedicalCondition")) {{ uid }}')
+        
         # Check for existing providers by provider_id
         if "providers" in record and record["providers"]:
             for i, provider in enumerate(record["providers"]):
                 provider_id = provider.get("provider_id")
                 if provider_id:
                     query_parts.append(f'provider_{i}(func: eq(provider_id, "{provider_id}")) @filter(eq(dgraph.type, "MedicalProvider")) {{ uid }}')
+        
+        # Check for existing organizations by organization_id
+        if "organizations" in record and record["organizations"]:
+            for i, organization in enumerate(record["organizations"]):
+                organization_id = organization.get("organization_id")
+                if organization_id:
+                    query_parts.append(f'organization_{i}(func: eq(organization_id, "{organization_id}")) @filter(eq(dgraph.type, "Organization")) {{ uid }}')
         
         # Check for existing addresses by street, city, state combination
         if "provider_facility" in record and record["provider_facility"]:
@@ -207,6 +504,19 @@ class DGraphMedicalImporter:
             state = facility.get("state")
             if street and city and state:
                 query_parts.append(f'address(func: eq(street, "{street}")) @filter(eq(dgraph.type, "Address") AND eq(city, "{city}") AND eq(state, "{state}")) {{ uid }}')
+        
+        # Check for existing addresses from patient address
+        if "patient" in record and record["patient"].get("address"):
+            patient_address = record["patient"]["address"]
+            street = patient_address.get("street")
+            city = patient_address.get("city")
+            state = patient_address.get("state")
+            if street and city and state:
+                query_parts.append(f'patient_address(func: eq(street, "{street}")) @filter(eq(dgraph.type, "Address") AND eq(city, "{city}") AND eq(state, "{state}")) {{ uid }}')
+        
+        # If no query parts, return a minimal valid query
+        if not query_parts:
+            return "{\n  _empty(func: uid(0x1)) {\n    uid\n  }\n}"
         
         return "{\n  " + "\n  ".join(query_parts) + "\n}"
     
@@ -219,6 +529,15 @@ class DGraphMedicalImporter:
         allergies_exist = {}
         for i in range(len(record.get("allergies", []))):
             allergies_exist[i] = f'allergy_{i}' in query_data and len(query_data[f'allergy_{i}']) > 0
+        immunizations_exist = {}
+        for i in range(len(record.get("immunizations", []))):
+            immunizations_exist[i] = f'immunization_{i}' in query_data and len(query_data[f'immunization_{i}']) > 0
+        substances_exist = {}
+        for i in range(len(record.get("substances", []))):
+            substances_exist[i] = f'substance_{i}' in query_data and len(query_data[f'substance_{i}']) > 0
+        conditions_exist = {}
+        for i in range(len(record.get("conditions", []))):
+            conditions_exist[i] = f'condition_{i}' in query_data and len(query_data[f'condition_{i}']) > 0
         
         # Handle patient - use existing if found, otherwise create new
         if patient_exists:
@@ -227,9 +546,32 @@ class DGraphMedicalImporter:
             patient_uid = self.generate_uid()
             # Add patient data since we're creating a new one
             for key, value in record["patient"].items():
-                if value is not None:
+                if value is not None and key != "address":  # Handle address separately
                     nquads.append(f'{patient_uid} <{key}> "{value}" .')
             nquads.append(f'{patient_uid} <dgraph.type> "Patient" .')
+        
+        # Handle patient address
+        if "patient" in record and record["patient"].get("address"):
+            patient_address = record["patient"]["address"]
+            street = patient_address.get("street")
+            city = patient_address.get("city")
+            state = patient_address.get("state")
+            
+            if street and city and state:
+                patient_address_exists = 'patient_address' in query_data and len(query_data['patient_address']) > 0
+                if patient_address_exists:
+                    # Use existing address - just link patient to it
+                    existing_address_uid = query_data['patient_address'][0]['uid']
+                    nquads.append(f'{patient_uid} <lives_in> <{existing_address_uid}> .')
+                else:
+                    # Create new address node
+                    address_uid = self.generate_uid()
+                    for key, value in patient_address.items():
+                        if value is not None:
+                            nquads.append(f'{address_uid} <{key}> "{value}" .')
+                    nquads.append(f'{address_uid} <dgraph.type> "Address" .')
+                    nquads.append(f'{patient_uid} <lives_in> {address_uid} .')
+                    nquads.append(f'{address_uid} <location_of_patient> {patient_uid} .')
         
         # Handle extraction metadata
         if "metadata" in record and record["metadata"]:
@@ -240,6 +582,11 @@ class DGraphMedicalImporter:
             nquads.append(f'{extraction_uid} <extracted_at> "{datetime.now().isoformat()}" .')
             nquads.append(f'{extraction_uid} <extraction_version> "1.0" .')
             nquads.append(f'{extraction_uid} <dgraph.type> "ExtractionRecord" .')
+            # Use proper UID format for existing patient
+            if patient_exists:
+                nquads.append(f'{extraction_uid} <contains_patient> <{patient_uid}> .')
+            else:
+                nquads.append(f'{extraction_uid} <contains_patient> {patient_uid} .')
         
         # Handle allergies with proper upsert logic
         if "allergies" in record and record["allergies"]:
@@ -249,9 +596,14 @@ class DGraphMedicalImporter:
                     if allergies_exist.get(i, False):
                         # Use existing allergy - just link patient to it
                         existing_allergy_uid = query_data[f'allergy_{i}'][0]['uid']
-                        nquads.append(f'{patient_uid} <has_allergy> <{existing_allergy_uid}> .')
-                        # Add reverse relationship
-                        nquads.append(f'<{existing_allergy_uid}> <allergy_of> {patient_uid} .')
+                        if patient_exists:
+                            nquads.append(f'<{patient_uid}> <has_allergy> <{existing_allergy_uid}> .')
+                            # Add reverse relationship
+                            nquads.append(f'<{existing_allergy_uid}> <allergy_of> <{patient_uid}> .')
+                        else:
+                            nquads.append(f'{patient_uid} <has_allergy> <{existing_allergy_uid}> .')
+                            # Add reverse relationship
+                            nquads.append(f'<{existing_allergy_uid}> <allergy_of> {patient_uid} .')
                     else:
                         # Create new allergy node
                         allergy_uid = self.generate_uid()
@@ -261,8 +613,84 @@ class DGraphMedicalImporter:
                         nquads.append(f'{allergy_uid} <dgraph.type> "Allergy" .')
                         
                         # Link patient to allergy (bidirectional)
-                        nquads.append(f'{patient_uid} <has_allergy> {allergy_uid} .')
-                        nquads.append(f'{allergy_uid} <allergy_of> {patient_uid} .')
+                        if patient_exists:
+                            nquads.append(f'<{patient_uid}> <has_allergy> {allergy_uid} .')
+                            nquads.append(f'{allergy_uid} <allergy_of> <{patient_uid}> .')
+                        else:
+                            nquads.append(f'{patient_uid} <has_allergy> {allergy_uid} .')
+                            nquads.append(f'{allergy_uid} <allergy_of> {patient_uid} .')
+        
+        # Handle immunizations with proper upsert logic
+        if "immunizations" in record and record["immunizations"]:
+            for i, immunization in enumerate(record["immunizations"]):
+                vaccine_name = immunization.get("vaccine_name")
+                if vaccine_name:
+                    if immunizations_exist.get(i, False):
+                        # Use existing immunization - just link patient to it
+                        existing_immunization_uid = query_data[f'immunization_{i}'][0]['uid']
+                        nquads.append(f'{patient_uid} <has_immunization> <{existing_immunization_uid}> .')
+                        nquads.append(f'<{existing_immunization_uid}> <immunization_of> {patient_uid} .')
+                    else:
+                        # Create new immunization node
+                        immunization_uid = self.generate_uid()
+                        for key, value in immunization.items():
+                            if value is not None:
+                                nquads.append(f'{immunization_uid} <{key}> "{value}" .')
+                        nquads.append(f'{immunization_uid} <dgraph.type> "Immunization" .')
+                        
+                        # Link patient to immunization (bidirectional)
+                        nquads.append(f'{patient_uid} <has_immunization> {immunization_uid} .')
+                        nquads.append(f'{immunization_uid} <immunization_of> {patient_uid} .')
+        
+        # Handle substances with proper upsert logic
+        if "substances" in record and record["substances"]:
+            for i, substance in enumerate(record["substances"]):
+                substance_name = substance.get("name")
+                if substance_name:
+                    if substances_exist.get(i, False):
+                        # Use existing substance - just link to it
+                        existing_substance_uid = query_data[f'substance_{i}'][0]['uid']
+                        # Link substance to allergies if applicable
+                        if "allergies" in record and record["allergies"]:
+                            for allergy in record["allergies"]:
+                                if allergy.get("allergen") == substance_name:
+                                    nquads.append(f'<{existing_substance_uid}> <causes_allergy> {allergy_uid} .')
+                    else:
+                        # Create new substance node
+                        substance_uid = self.generate_uid()
+                        for key, value in substance.items():
+                            if value is not None:
+                                nquads.append(f'{substance_uid} <{key}> "{value}" .')
+                        nquads.append(f'{substance_uid} <dgraph.type> "Substance" .')
+                        
+                        # Link substance to allergies if applicable
+                        if "allergies" in record and record["allergies"]:
+                            for allergy in record["allergies"]:
+                                if allergy.get("allergen") == substance_name:
+                                    nquads.append(f'{substance_uid} <causes_allergy> {allergy_uid} .')
+                                    nquads.append(f'{allergy_uid} <caused_by> {substance_uid} .')
+        
+        # Handle conditions with proper upsert logic
+        if "conditions" in record and record["conditions"]:
+            for i, condition in enumerate(record["conditions"]):
+                condition_name = condition.get("condition_name")
+                if condition_name:
+                    if conditions_exist.get(i, False):
+                        # Use existing condition - just link patient to it
+                        existing_condition_uid = query_data[f'condition_{i}'][0]['uid']
+                        nquads.append(f'{patient_uid} <has_condition> <{existing_condition_uid}> .')
+                        nquads.append(f'<{existing_condition_uid}> <condition_of> {patient_uid} .')
+                    else:
+                        # Create new condition node
+                        condition_uid = self.generate_uid()
+                        for key, value in condition.items():
+                            if value is not None:
+                                nquads.append(f'{condition_uid} <{key}> "{value}" .')
+                        nquads.append(f'{condition_uid} <dgraph.type> "MedicalCondition" .')
+                        
+                        # Link patient to condition (bidirectional)
+                        nquads.append(f'{patient_uid} <has_condition> {condition_uid} .')
+                        nquads.append(f'{condition_uid} <condition_of> {patient_uid} .')
         
         # Handle provider_facility (address)
         if "provider_facility" in record and record["provider_facility"]:
@@ -291,7 +719,7 @@ class DGraphMedicalImporter:
             for visit in record["visits"]:
                 visit_uid = self.generate_uid()
                 for key, value in visit.items():
-                    if value is not None:
+                    if value is not None and key != "provider" and key != "location":
                         nquads.append(f'{visit_uid} <{key}> "{value}" .')
                 nquads.append(f'{visit_uid} <dgraph.type> "MedicalVisit" .')
                 nquads.append(f'{patient_uid} <has_visit> {visit_uid} .')
@@ -305,15 +733,36 @@ class DGraphMedicalImporter:
                 if provider_id and provider_exists:
                     # Use existing provider - just link patient to it
                     existing_provider_uid = query_data[f'provider_{i}'][0]['uid']
-                    nquads.append(f'{patient_uid} <treated_at> <{existing_provider_uid}> .')
+                    nquads.append(f'{patient_uid} <treated_by> <{existing_provider_uid}> .')
                 else:
                     # Create new provider node
                     provider_uid = self.generate_uid()
                     for key, value in provider.items():
-                        if value is not None:
+                        if value is not None and key != "address":
                             nquads.append(f'{provider_uid} <{key}> "{value}" .')
                     nquads.append(f'{provider_uid} <dgraph.type> "MedicalProvider" .')
-                    nquads.append(f'{patient_uid} <treated_at> {provider_uid} .')
+                    nquads.append(f'{patient_uid} <treated_by> {provider_uid} .')
+                    nquads.append(f'{provider_uid} <treats> {patient_uid} .')
+        
+        # Handle organizations
+        if "organizations" in record and record["organizations"]:
+            for i, organization in enumerate(record["organizations"]):
+                organization_id = organization.get("organization_id")
+                organization_exists = f'organization_{i}' in query_data and len(query_data[f'organization_{i}']) > 0
+                if organization_id and organization_exists:
+                    # Use existing organization - just link provider to it
+                    existing_organization_uid = query_data[f'organization_{i}'][0]['uid']
+                    nquads.append(f'{provider_uid} <works_at> <{existing_organization_uid}> .')
+                    nquads.append(f'<{existing_organization_uid}> <employs_provider> {provider_uid} .')
+                else:
+                    # Create new organization node
+                    organization_uid = self.generate_uid()
+                    for key, value in organization.items():
+                        if value is not None and key != "address":
+                            nquads.append(f'{organization_uid} <{key}> "{value}" .')
+                    nquads.append(f'{organization_uid} <dgraph.type> "Organization" .')
+                    nquads.append(f'{provider_uid} <works_at> {organization_uid} .')
+                    nquads.append(f'{organization_uid} <employs_provider> {provider_uid} .')
         
         # Return N-Quads string
         return '\n'.join(nquads)
@@ -330,17 +779,32 @@ class DGraphMedicalImporter:
                 age
                 gender
                 date_of_birth
+                multiple_birth
+                primary_language
                 
                 has_visit {{
                     uid
                     visit_type
                     start_time
                     end_time
-                    location
+                    timezone
+                    status
+                    classification
+                    reason
+                    notes
                     conducted_by {{
                         name
                         provider_id
                         specialty
+                        role
+                        organization
+                    }}
+                    conducted_at {{
+                        street
+                        city
+                        state
+                        zip_code
+                        country
                     }}
                 }}
                 
@@ -348,17 +812,151 @@ class DGraphMedicalImporter:
                     uid
                     allergen
                     severity
+                    reaction_type
                     confirmed_date
+                    status
                     notes
+                    caused_by {{
+                        name
+                        type
+                        description
+                    }}
                 }}
                 
-                treated_at {{
+                has_immunization {{
+                    uid
+                    vaccine_name
+                    vaccine_type
+                    administration_date
+                    status
+                    lot_number
+                    manufacturer
+                    notes
+                    administered_by {{
+                        name
+                        provider_id
+                        specialty
+                    }}
+                    administered_at {{
+                        street
+                        city
+                        state
+                        zip_code
+                        country
+                    }}
+                }}
+                
+                has_condition {{
+                    uid
+                    condition_name
+                    status
+                    onset_date
+                    severity
+                    category
+                    notes
+                    diagnosed_by {{
+                        name
+                        provider_id
+                        specialty
+                    }}
+                }}
+                
+                has_observation {{
+                    uid
+                    observation_type
+                    value
+                    unit
+                    status
+                    effective_time
+                    issued_time
+                    category
+                    code
+                    interpretation
+                    notes
+                    performed_by {{
+                        name
+                        provider_id
+                        specialty
+                    }}
+                }}
+                
+                has_procedure {{
+                    uid
+                    procedure_type
+                    status
+                    start_time
+                    end_time
+                    duration
+                    reason
+                    outcome
+                    notes
+                    performed_by {{
+                        name
+                        provider_id
+                        specialty
+                    }}
+                    performed_at {{
+                        street
+                        city
+                        state
+                        zip_code
+                        country
+                    }}
+                }}
+                
+                lives_in {{
                     uid
                     street
                     city
                     state
                     zip_code
                     country
+                    timezone
+                }}
+                
+                treated_by {{
+                    uid
+                    name
+                    provider_id
+                    specialty
+                    role
+                    organization
+                    works_at {{
+                        name
+                        organization_id
+                        type
+                        phone
+                        website
+                        specialties
+                        located_at {{
+                            street
+                            city
+                            state
+                            zip_code
+                            country
+                        }}
+                    }}
+                }}
+                
+                has_contact_info {{
+                    uid
+                    phone_number
+                    email
+                    preferred_language
+                    communication_preferences
+                }}
+                
+                has_social_history {{
+                    uid
+                    employment_status
+                    education_level
+                    insurance_provider
+                    annual_income
+                    housing_status
+                    transportation_access
+                    social_support_level
+                    risk_factors
+                    lifestyle_factors
                 }}
             }}
         }}
@@ -524,6 +1122,14 @@ def main():
                 print(f"  👤 Patient ID: {patient.get('patient_id', 'N/A')}")
                 print(f"  📅 Visits: {len(patient.get('has_visit', []))}")
                 print(f"  ⚠️  Allergies: {len(patient.get('has_allergy', []))}")
+                print(f"  💉 Immunizations: {len(patient.get('has_immunization', []))}")
+                print(f"  🏥 Conditions: {len(patient.get('has_condition', []))}")
+                print(f"  🔬 Observations: {len(patient.get('has_observation', []))}")
+                print(f"  🏥 Procedures: {len(patient.get('has_procedure', []))}")
+                print(f"  🏠 Address: {'Yes' if patient.get('lives_in') else 'No'}")
+                print(f"  👨‍⚕️ Providers: {len(patient.get('treated_by', []))}")
+                print(f"  📞 Contact Info: {'Yes' if patient.get('has_contact_info') else 'No'}")
+                print(f"  📊 Social History: {'Yes' if patient.get('has_social_history') else 'No'}")
     
     except Exception as e:
         print(f"❌ Error: {e}")
