@@ -23,8 +23,8 @@ class DGraphMedicalImporter:
     def setup_schema(self):
         """Setup DGraph schema for enhanced medical knowledge graph with upsert support."""
         schema = """
-        # Enhanced Medical Knowledge Graph Schema
-        # Aligned with knowledge graph structure and additional medical entities
+        # Simplified Medical Knowledge Graph Schema
+        # Focused on essential types and predicates for current data
         
         # Patient node - Central entity
         type Patient {
@@ -50,140 +50,6 @@ class DGraphMedicalImporter:
             has_social_history: [uid]
         }
         
-        # Practitioner/Provider node
-        type MedicalProvider {
-            name: string
-            provider_id: string
-            specialty: string
-            role: string
-            organization: string
-            
-            # Relationships
-            treats: [uid]
-            conducts_visit: [uid]
-            performs_procedure: [uid]
-            administers_immunization: [uid]
-            works_at: [uid]
-        }
-        
-        # Allergy node
-        type Allergy {
-            allergen: string
-            severity: string
-            reaction_type: string
-            confirmed_date: string
-            status: string
-            notes: string
-            
-            # Relationships
-            allergy_of: [uid]
-            caused_by: [uid]
-        }
-        
-        # Substance node - Medications, environmental factors, etc.
-        type Substance {
-            name: string
-            type: string
-            description: string
-            active_ingredients: [string]
-            dosage: string
-            frequency: string
-            
-            # Relationships
-            causes_allergy: [uid]
-            used_in_procedure: [uid]
-            administered_as_immunization: [uid]
-        }
-        
-        # Immunization node
-        type Immunization {
-            vaccine_name: string
-            vaccine_type: string
-            administration_date: string
-            status: string
-            lot_number: string
-            manufacturer: string
-            notes: string
-            
-            # Relationships
-            immunization_of: [uid]
-            administered_by: [uid]
-            administered_at: [uid]
-            substance: [uid]
-        }
-        
-        # Clinical Observation node - Lab results, vital signs, measurements
-        type ClinicalObservation {
-            observation_type: string
-            value: string
-            unit: string
-            status: string
-            effective_time: string
-            issued_time: string
-            category: string
-            code: string
-            interpretation: string
-            notes: string
-            
-            # Relationships
-            observation_of: [uid]
-            conducted_during: [uid]
-            performed_by: [uid]
-        }
-        
-        # Medical Procedure node
-        type MedicalProcedure {
-            procedure_type: string
-            status: string
-            start_time: string
-            end_time: string
-            duration: string
-            reason: string
-            outcome: string
-            notes: string
-            
-            # Relationships
-            procedure_of: [uid]
-            performed_by: [uid]
-            performed_at: [uid]
-            uses_substance: [uid]
-        }
-        
-        # Medical Condition node
-        type MedicalCondition {
-            condition_name: string
-            status: string
-            onset_date: string
-            severity: string
-            category: string
-            notes: string
-            
-            # Relationships
-            condition_of: [uid]
-            diagnosed_during: [uid]
-            diagnosed_by: [uid]
-        }
-        
-        # Medical Visit node
-        type MedicalVisit {
-            visit_type: string
-            start_time: string
-            end_time: string
-            timezone: string
-            status: string
-            classification: string
-            reason: string
-            notes: string
-            
-            # Relationships
-            visit_of: [uid]
-            conducted_by: [uid]
-            conducted_at: [uid]
-            includes_procedure: [uid]
-            includes_observation: [uid]
-            includes_immunization: [uid]
-        }
-        
         # Address/Facility node
         type Address {
             street: string
@@ -204,70 +70,27 @@ class DGraphMedicalImporter:
             location_of_procedure: [uid]
         }
         
-        # Organization node - Healthcare facilities, clinics, labs
-        type Organization {
-            name: string
-            organization_id: string
-            type: string
-            phone: string
-            website: string
-            specialties: [string]
+        # Medical Visit node
+        type MedicalVisit {
+            visit_type: string
+            start_time: string
+            end_time: string
+            timezone: string
+            status: string
+            classification: string
+            reason: string
+            notes: string
             
             # Relationships
-            employs_provider: [uid]
-            hosts_visit: [uid]
-            hosts_procedure: [uid]
-            located_at: [uid]
+            visit_of: [uid]
+            includes_procedure: [uid]
+            includes_observation: [uid]
+            includes_immunization: [uid]
         }
         
-        # Contact Information node
-        type ContactInfo {
-            phone_number: string
-            email: string
-            preferred_language: string
-            communication_preferences: string
-            
-            # Relationships
-            contact_of: [uid]
-        }
-        
-        # Social History node
-        type SocialHistory {
-            employment_status: string
-            education_level: string
-            insurance_provider: string
-            annual_income: string
-            housing_status: string
-            transportation_access: bool
-            social_support_level: string
-            risk_factors: [string]
-            lifestyle_factors: [string]
-            
-            # Relationships
-            social_history_of: [uid]
-        }
-        
-        # Extraction metadata
-        type ExtractionRecord {
-            source: string
-            record_id: string
-            import_timestamp: string
-            extracted_at: string
-            text_length: int
-            extraction_version: string
-            fhir_resource_type: string
-            extraction_confidence: float
-            contains_patient: [uid]
-        }
-        
-        # All predicates with proper indexing and upsert support
+        # Basic predicates with proper indexing
         name: string @index(term, fulltext) @upsert .
         patient_id: string @index(exact) @upsert .
-        provider_id: string @index(exact) @upsert .
-        organization_id: string @index(exact) @upsert .
-        source: string @index(exact) .
-        record_id: string @index(exact) .
-        import_timestamp: string @index(exact) .
         marital_status: string @index(exact) .
         age: int @index(int) .
         gender: string @index(exact) .
@@ -280,11 +103,7 @@ class DGraphMedicalImporter:
         timezone: string @index(exact) .
         status: string @index(exact) .
         classification: string @index(exact) .
-        specialty: string @index(exact) .
-        allergen: string @index(exact) .
-        severity: string @index(exact) .
-        reaction_type: string @index(exact) .
-        confirmed_date: string @index(exact) .
+        reason: string @index(exact) .
         notes: string @index(fulltext) .
         street: string @index(exact) .
         city: string @index(exact) .
@@ -293,19 +112,16 @@ class DGraphMedicalImporter:
         country: string @index(exact) .
         latitude: float @index(float) .
         longitude: float @index(float) .
-        geo: geo @index(geo) .
         geocoded: bool @index(bool) .
-        extracted_at: string @index(exact) .
-        text_length: int @index(int) .
-        extraction_version: string @index(exact) .
+        location: geo @index(geo) .
+        
+        # Additional predicates needed for current data
+        condition_name: string @index(exact) .
+        onset_date: string @index(exact) .
         vaccine_name: string @index(exact) .
         vaccine_type: string @index(exact) .
         administration_date: string @index(exact) .
-        lot_number: string @index(exact) .
-        manufacturer: string @index(exact) .
         procedure_type: string @index(exact) .
-        reason: string @index(fulltext) .
-        outcome: string @index(exact) .
         observation_type: string @index(exact) .
         value: string @index(fulltext) .
         unit: string @index(exact) .
@@ -314,106 +130,38 @@ class DGraphMedicalImporter:
         category: string @index(exact) .
         code: string @index(exact) .
         interpretation: string @index(exact) .
-        condition_name: string @index(exact) .
-        condition_status: string @index(exact) .
-        onset_date: string @index(exact) .
-        organization_type: string @index(exact) .
-        phone: string @index(exact) .
-        website: string @index(fulltext) .
-        employment_status: string @index(exact) .
-        education_level: string @index(exact) .
-        insurance_provider: string @index(exact) .
-        annual_income: string @index(exact) .
-        housing_status: string @index(exact) .
-        transportation_access: bool @index(bool) .
-        social_support_level: string @index(exact) .
-        risk_factors: string @index(exact) .
-        lifestyle_factors: string @index(exact) .
-        substance_name: string @index(exact) .
-        substance_type: string @index(exact) .
-        active_ingredients: string @index(exact) .
-        dosage: string @index(exact) .
-        frequency: string @index(exact) .
-        role: string @index(exact) .
-        fhir_resource_type: string @index(exact) .
-        extraction_confidence: float @index(float) .
-        type: string @index(exact) .
-        phone_number: string @index(exact) .
-        email: string @index(exact) .
-        preferred_language: string @index(exact) .
-        communication_preferences: string @index(exact) .
-        organization: string @index(exact) .
-        description: string @index(fulltext) .
-        duration: string @index(exact) .
-        provider_name: string @index(exact) .
-        organization_name: string @index(exact) .
-        specialties: [string] @index(exact) .
-        conducted_at: [uid] @reverse .
-        treated_at: [uid] @reverse .
+        source: string @index(exact) .
+        record_id: string @index(exact) .
+        import_timestamp: string @index(exact) .
+        extracted_at: string @index(exact) .
+        extraction_version: string @index(exact) .
         
-        # All relationships with reverse edges
-        has_visit: [uid] @reverse .
-        has_allergy: [uid] @reverse .
-        has_immunization: [uid] @reverse .
-        has_condition: [uid] @reverse .
-        has_observation: [uid] @reverse .
-        has_procedure: [uid] @reverse .
-        lives_in: [uid] @reverse .
-        treated_by: [uid] @reverse .
-        has_contact_info: [uid] @reverse .
-        has_social_history: [uid] @reverse .
-        treats: [uid] @reverse .
-        conducts_visit: [uid] @reverse .
-        performs_procedure: [uid] @reverse .
-        administers_immunization: [uid] @reverse .
-        works_at: [uid] @reverse .
-        allergy_of: [uid] @reverse .
-        caused_by: [uid] @reverse .
-        causes_allergy: [uid] @reverse .
-        used_in_procedure: [uid] @reverse .
-        administered_as_immunization: [uid] @reverse .
-        immunization_of: [uid] @reverse .
-        administered_by: [uid] @reverse .
-        administered_at: [uid] @reverse .
-        substance: [uid] @reverse .
-        observation_of: [uid] @reverse .
-        conducted_during: [uid] @reverse .
-        performed_by: [uid] @reverse .
-        procedure_of: [uid] @reverse .
-        performed_at: [uid] @reverse .
-        uses_substance: [uid] @reverse .
-        condition_of: [uid] @reverse .
-        diagnosed_during: [uid] @reverse .
-        diagnosed_by: [uid] @reverse .
-        visit_of: [uid] @reverse .
-        includes_procedure: [uid] @reverse .
-        includes_observation: [uid] @reverse .
-        includes_immunization: [uid] @reverse .
-        location_of_patient: [uid] @reverse .
-        location_of_provider: [uid] @reverse .
-        location_of_organization: [uid] @reverse .
-        location_of_visit: [uid] @reverse .
-        location_of_procedure: [uid] @reverse .
-        employs_provider: [uid] @reverse .
-        hosts_visit: [uid] @reverse .
-        hosts_procedure: [uid] @reverse .
-        located_at: [uid] @reverse .
-        contact_of: [uid] @reverse .
-        social_history_of: [uid] @reverse .
-        contains_patient: [uid] @reverse .
-        conducted_by: [uid] @reverse .
-        has_provider: [uid] @reverse .
-        provider_of: [uid] @reverse .
-        has_organization: [uid] @reverse .
-        organization_of: [uid] @reverse .
-        has_substance: [uid] @reverse .
-        substance_of: [uid] @reverse .
-        
-        # Vector embeddings for semantic search
-        embedding: vector @index(vector) .
+        # Vector embedding predicates for AI-powered search
+        embedding: float32vector @index(hnsw(metric:"cosine",exponent:"4")) .
         embedding_model: string @index(exact) .
         embedding_text: string @index(fulltext) .
         embedding_dimensions: string @index(exact) .
+        
+        # Basic relationships
+        has_visit: [uid] .
+        has_allergy: [uid] .
+        has_immunization: [uid] .
+        has_condition: [uid] .
+        has_observation: [uid] .
+        has_procedure: [uid] .
+        lives_in: [uid] .
+        treated_by: [uid] .
+        has_contact_info: [uid] .
+        has_social_history: [uid] .
+        visit_of: [uid] .
+        includes_procedure: [uid] .
+        includes_observation: [uid] .
+        includes_immunization: [uid] .
+        location_of_patient: [uid] .
+        location_of_provider: [uid] .
+        location_of_organization: [uid] .
+        location_of_visit: [uid] .
+        location_of_procedure: [uid] .
         """
         
         print("Setting up DGraph schema...")
@@ -422,7 +170,21 @@ class DGraphMedicalImporter:
             self.client.alter(op)
             print("✅ Schema setup complete")
         except Exception as e:
-            print(f"⚠️  Schema setup warning (may already exist): {e}")
+            print(f"❌ Schema setup failed: {e}")
+            print("🔄 Attempting to drop and recreate schema...")
+            try:
+                # Drop all data and schema
+                drop_op = pydgraph.Operation(drop_all=True)
+                self.client.alter(drop_op)
+                print("✅ Dropped existing schema and data")
+                
+                # Reapply schema
+                op = pydgraph.Operation(schema=schema)
+                self.client.alter(op)
+                print("✅ Schema recreated successfully")
+            except Exception as e2:
+                print(f"❌ Schema recreation failed: {e2}")
+                raise e2
     
     def generate_uid(self) -> str:
         """Generate a unique identifier."""
@@ -778,8 +540,15 @@ class DGraphMedicalImporter:
                 if organization_id and organization_exists:
                     # Use existing organization - just link provider to it
                     existing_organization_uid = query_data[f'organization_{i}'][0]['uid']
-                    nquads.append(f'{provider_uid} <works_at> <{existing_organization_uid}> .')
-                    nquads.append(f'<{existing_organization_uid}> <employs_provider> {provider_uid} .')
+                    # Only create provider-organization links if we have a provider
+                    if "providers" in record and record["providers"] and i < len(record["providers"]):
+                        provider = record["providers"][i]
+                        if provider.get("name"):  # Only link if provider has a name
+                            provider_uid = self.generate_uid()
+                            nquads.append(f'{provider_uid} <name> "{provider["name"]}" .')
+                            nquads.append(f'{provider_uid} <dgraph.type> "MedicalProvider" .')
+                            nquads.append(f'{provider_uid} <works_at> <{existing_organization_uid}> .')
+                            nquads.append(f'<{existing_organization_uid}> <employs_provider> {provider_uid} .')
                 else:
                     # Create new organization node
                     organization_uid = self.generate_uid()
@@ -787,8 +556,15 @@ class DGraphMedicalImporter:
                         if value is not None and key != "address":
                             nquads.append(f'{organization_uid} <{key}> "{value}" .')
                     nquads.append(f'{organization_uid} <dgraph.type> "Organization" .')
-                    nquads.append(f'{provider_uid} <works_at> {organization_uid} .')
-                    nquads.append(f'{organization_uid} <employs_provider> {provider_uid} .')
+                    # Only create provider-organization links if we have a provider
+                    if "providers" in record and record["providers"] and i < len(record["providers"]):
+                        provider = record["providers"][i]
+                        if provider.get("name"):  # Only link if provider has a name
+                            provider_uid = self.generate_uid()
+                            nquads.append(f'{provider_uid} <name> "{provider["name"]}" .')
+                            nquads.append(f'{provider_uid} <dgraph.type> "MedicalProvider" .')
+                            nquads.append(f'{provider_uid} <works_at> {organization_uid} .')
+                            nquads.append(f'{organization_uid} <employs_provider> {provider_uid} .')
         
         # Return N-Quads string
         return '\n'.join(nquads)

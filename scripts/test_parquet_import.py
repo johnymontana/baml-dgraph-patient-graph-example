@@ -135,8 +135,72 @@ def test_dgraph_import(records):
         # Clean up
         importer.close()
         
+        return successful_imports > 0
+        
     except Exception as e:
         print(f"❌ Error importing to DGraph: {e}")
+        return False
+
+def test_geo_locations_update():
+    """Test updating geo locations for imported records."""
+    print(f"\n🌍 Testing Geo Locations Update")
+    print("=" * 50)
+    
+    try:
+        # Import and run the geo locations script
+        from scripts.add_geo_locations import GeoLocationProcessor
+        import os
+        from dotenv import load_dotenv
+        
+        # Load environment variables
+        load_dotenv(verbose=False)
+        dgraph_url = os.getenv('DGRAPH_CONNECTION_STRING', 'dgraph://localhost:9080')
+        
+        print("🔧 Adding geo locations to DGraph nodes...")
+        processor = GeoLocationProcessor(dgraph_url)
+        success = processor.run_full_process()
+        
+        if success:
+            print("✅ Geo locations update completed successfully")
+        else:
+            print("❌ Geo locations update failed")
+        
+        return success
+        
+    except Exception as e:
+        print(f"❌ Error updating geo locations: {e}")
+        return False
+
+def test_embeddings_generation():
+    """Test generating embeddings for imported records."""
+    print(f"\n🧠 Testing Embeddings Generation")
+    print("=" * 50)
+    
+    try:
+        # Import and run the embeddings script
+        from scripts.add_embeddings import EmbeddingProcessor
+        import os
+        from dotenv import load_dotenv
+        
+        # Load environment variables
+        load_dotenv(verbose=False)
+        dgraph_url = os.getenv('DGRAPH_CONNECTION_STRING', 'dgraph://localhost:9080')
+        ollama_url = os.getenv('OLLAMA_URL', 'http://localhost:11434')
+        
+        print("🔧 Generating embeddings for DGraph nodes...")
+        processor = EmbeddingProcessor(dgraph_url, ollama_url)
+        success = processor.run_full_process()
+        
+        if success:
+            print("✅ Embeddings generation completed successfully")
+        else:
+            print("❌ Embeddings generation failed")
+        
+        return success
+        
+    except Exception as e:
+        print(f"❌ Error generating embeddings: {e}")
+        return False
 
 async def main():
     """Main function to test the parquet data processing."""
@@ -148,11 +212,22 @@ async def main():
     
     if records:
         # Test DGraph import
-        test_dgraph_import(records)
+        import_success = test_dgraph_import(records)
         
-        print("\n🎉 Test Complete!")
-        print(f"📊 Test records processed: {len(records)}")
-        print("\n💡 To run the full import, use: make full-import")
+        if import_success:
+            # Test geo locations update
+            geo_success = test_geo_locations_update()
+            
+            # Test embeddings generation
+            embeddings_success = test_embeddings_generation()
+            
+            print("\n🎉 Test Complete!")
+            print(f"📊 Test records processed: {len(records)}")
+            print(f"🌍 Geo locations update: {'✅ Success' if geo_success else '❌ Failed'}")
+            print(f"🧠 Embeddings generation: {'✅ Success' if embeddings_success else '❌ Failed'}")
+            print("\n💡 To run the full import, use: make full-import")
+        else:
+            print("\n❌ DGraph import failed, skipping post-processing steps")
     else:
         print("\n❌ Test failed")
 

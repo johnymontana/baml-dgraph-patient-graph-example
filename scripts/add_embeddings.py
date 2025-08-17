@@ -278,7 +278,7 @@ class EmbeddingProcessor:
                     embedding_str = json.dumps(embedding)
                     
                     # Add embedding predicate
-                    nquads.append(f'<{uid}> <embedding> "{embedding_str}"^^<vector> .')
+                    nquads.append(f'<{uid}> <embedding> "{embedding_str}" .')
                     
                     # Add embedding metadata
                     nquads.append(f'<{uid}> <embedding_model> "{self.embedding_model}" .')
@@ -347,7 +347,13 @@ class EmbeddingProcessor:
                 # Group by type
                 by_type = {}
                 for node in nodes_with_embeddings:
-                    node_type = node.get('dgraph.type', 'Unknown')
+                    # Handle dgraph.type which can be a list
+                    node_types = node.get('dgraph.type', [])
+                    if isinstance(node_types, list):
+                        node_type = node_types[0] if node_types else 'Unknown'
+                    else:
+                        node_type = node_types
+                    
                     if node_type not in by_type:
                         by_type[node_type] = []
                     by_type[node_type].append(node)
