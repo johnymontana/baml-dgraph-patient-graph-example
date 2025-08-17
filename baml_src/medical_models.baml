@@ -8,6 +8,9 @@ class Address {
   zip_code string
   country string
   timezone string?  // Timezone information for the location
+  latitude float?  // Latitude coordinate when geocoded
+  longitude float?  // Longitude coordinate when geocoded
+  geocoded bool  // Whether the address was successfully geocoded
 }
 
 class ContactInfo {
@@ -124,7 +127,7 @@ class SocialHistory {
   insurance_provider string?
   annual_income string?
   housing_status string?
-  transportation_access boolean?
+  transportation_access bool?
   social_support_level string?
   risk_factors string[]?
   lifestyle_factors string[]?
@@ -139,7 +142,7 @@ class Patient {
   date_of_birth string?
   contact_info ContactInfo?
   address Address?
-  multiple_birth boolean?
+  multiple_birth bool?
   primary_language string?
   social_history SocialHistory?
 }

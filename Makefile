@@ -34,6 +34,12 @@ test-full-import: ## Test FLIR parquet import with limited records
 test-duplicate-prevention: ## Test duplicate prevention functionality
 	uv run python scripts/test_duplicate_prevention.py
 
+add-geo-locations: ## Add geo location predicates to existing DGraph nodes
+	uv run python scripts/add_geo_locations.py
+
+test-geo-conversion: ## Test geo coordinate conversion functionality
+	uv run python scripts/test_geo_conversion.py
+
 pipeline: extract import ## Run the complete pipeline (extract + import)
 
 start-dgraph: ## Start DGraph using Docker

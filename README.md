@@ -686,3 +686,77 @@ For issues related to:
 - **"Which patients might benefit from allergy testing based on their visit patterns?"**
 - **"Are there medication-related visits for patients with drug allergies?"**
 - **"Find patients with gaps in preventive care (immunizations, screenings)"**
+
+## Geospatial Capabilities
+
+The system includes comprehensive geospatial capabilities for medical addresses:
+
+### BAML Geocoding
+- **Automatic Geocoding**: BAML automatically geocodes addresses during extraction
+- **Coordinate Storage**: Locations are stored as separate `latitude` and `longitude` float fields
+- **Precision**: Coordinates use WGS84 standard with 6 decimal places for accuracy
+- **Geocoding Status**: Each address includes a `geocoded` boolean flag
+
+### DGraph Schema
+- **Latitude/Longitude**: Stored as `float` types with `@index(float)` for efficient querying
+- **Geo Predicate**: Additional `geo` predicate with `@index(geo)` for advanced geospatial operations
+- **Hybrid Approach**: Maintains both coordinate types for flexibility
+
+### Post-Processing Conversion
+A separate Python script (`scripts/add_geo_locations.py`) converts latitude/longitude coordinates to GeoJSON format:
+- Finds all Address nodes with coordinates
+- Converts to GeoJSON Point format: `POINT(longitude latitude)`
+- Adds `location` predicate with `geo` type and geospatial indexing
+- Preserves existing `latitude`/`longitude` fields for backward compatibility
+
+### Usage Examples
+```bash
+# Add geo location predicates to existing nodes
+make add-geo-locations
+
+# Test coordinate conversion functionality
+make test-geo-conversion
+
+# Manual execution
+uv run python scripts/add_geo_locations.py
+uv run python scripts/test_geo_conversion.py
+```
+
+### Sample Geospatial Queries
+```dql
+# Find patients within 50km of a specific location
+{
+  nearby_patients(func: type(Address)) @filter(ge(location, "POINT(-71.0589 42.3601)", 50)) {
+    uid
+    street
+    city
+    state
+    ~location_of_patient {
+      name
+      age
+    }
+  }
+}
+
+# Find healthcare facilities in a specific region
+{
+  facilities(func: type(Organization)) @filter(ge(location, "POINT(-74.006 40.7128)", 100)) {
+    name
+    type
+    specialties
+  }
+}
+
+# Find addresses within a bounding box
+{
+  region_addresses(func: type(Address)) @filter(ge(location, "POINT(-74.006 40.7128)", 100)) {
+    uid
+    street
+    city
+    state
+    latitude
+    longitude
+    location
+  }
+}
+```

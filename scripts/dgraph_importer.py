@@ -192,6 +192,9 @@ class DGraphMedicalImporter:
             zip_code: string
             country: string
             timezone: string
+            latitude: float
+            longitude: float
+            geocoded: bool
             
             # Relationships
             location_of_patient: [uid]
@@ -246,7 +249,9 @@ class DGraphMedicalImporter:
         
         # Extraction metadata
         type ExtractionRecord {
-            source_id: string
+            source: string
+            record_id: string
+            import_timestamp: string
             extracted_at: string
             text_length: int
             extraction_version: string
@@ -260,7 +265,9 @@ class DGraphMedicalImporter:
         patient_id: string @index(exact) @upsert .
         provider_id: string @index(exact) @upsert .
         organization_id: string @index(exact) @upsert .
-        source_id: string @index(exact) @upsert .
+        source: string @index(exact) .
+        record_id: string @index(exact) .
+        import_timestamp: string @index(exact) .
         marital_status: string @index(exact) .
         age: int @index(int) .
         gender: string @index(exact) .
@@ -284,6 +291,10 @@ class DGraphMedicalImporter:
         state: string @index(exact) .
         zip_code: string @index(exact) .
         country: string @index(exact) .
+        latitude: float @index(float) .
+        longitude: float @index(float) .
+        geo: geo @index(geo) .
+        geocoded: bool @index(bool) .
         extracted_at: string @index(exact) .
         text_length: int @index(int) .
         extraction_version: string @index(exact) .
@@ -334,12 +345,8 @@ class DGraphMedicalImporter:
         organization: string @index(exact) .
         description: string @index(fulltext) .
         duration: string @index(exact) .
-        location: string @index(exact) .
         provider_name: string @index(exact) .
         organization_name: string @index(exact) .
-        source: string @index(exact) .
-        record_id: string @index(exact) .
-        import_timestamp: string @index(exact) .
         specialties: [string] @index(exact) .
         conducted_at: [uid] @reverse .
         treated_at: [uid] @reverse .
@@ -573,7 +580,11 @@ class DGraphMedicalImporter:
                     address_uid = self.generate_uid()
                     for key, value in patient_address.items():
                         if value is not None:
-                            nquads.append(f'{address_uid} <{key}> "{value}" .')
+                            # Handle geospatial fields as geo type
+                            if key == 'location':
+                                nquads.append(f'{address_uid} <{key}> "{value}"^^<geo:geojson> .')
+                            else:
+                                nquads.append(f'{address_uid} <{key}> "{value}" .')
                     nquads.append(f'{address_uid} <dgraph.type> "Address" .')
                     nquads.append(f'{patient_uid} <lives_in> {address_uid} .')
                     nquads.append(f'{address_uid} <location_of_patient> {patient_uid} .')
@@ -715,7 +726,11 @@ class DGraphMedicalImporter:
                     address_uid = self.generate_uid()
                     for key, value in facility.items():
                         if value is not None:
-                            nquads.append(f'{address_uid} <{key}> "{value}" .')
+                            # Handle geospatial fields as geo type
+                            if key == 'location':
+                                nquads.append(f'{address_uid} <{key}> "{value}"^^<geo:geojson> .')
+                            else:
+                                nquads.append(f'{address_uid} <{key}> "{value}" .')
                     nquads.append(f'{address_uid} <dgraph.type> "Address" .')
                     nquads.append(f'{patient_uid} <treated_at> {address_uid} .')
         
