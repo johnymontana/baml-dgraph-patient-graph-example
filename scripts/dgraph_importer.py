@@ -328,6 +328,9 @@ class DGraphMedicalImporter:
         extraction_confidence: float @index(float) .
         type: string @index(exact) .
         phone_number: string @index(exact) .
+        email: string @index(exact) .
+        preferred_language: string @index(exact) .
+        communication_preferences: string @index(exact) .
         organization: string @index(exact) .
         description: string @index(fulltext) .
         duration: string @index(exact) .
@@ -337,6 +340,8 @@ class DGraphMedicalImporter:
         source: string @index(exact) .
         record_id: string @index(exact) .
         import_timestamp: string @index(exact) .
+        specialties: [string] @index(exact) .
+        conducted_at: [uid] @reverse .
         treated_at: [uid] @reverse .
         
         # All relationships with reverse edges
