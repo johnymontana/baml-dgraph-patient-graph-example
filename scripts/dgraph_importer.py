@@ -408,6 +408,12 @@ class DGraphMedicalImporter:
         organization_of: [uid] @reverse .
         has_substance: [uid] @reverse .
         substance_of: [uid] @reverse .
+        
+        # Vector embeddings for semantic search
+        embedding: vector @index(vector) .
+        embedding_model: string @index(exact) .
+        embedding_text: string @index(fulltext) .
+        embedding_dimensions: string @index(exact) .
         """
         
         print("Setting up DGraph schema...")

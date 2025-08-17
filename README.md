@@ -760,3 +760,194 @@ uv run python scripts/test_geo_conversion.py
   }
 }
 ```
+
+## Vector Embedding Capabilities
+
+The system includes advanced vector embedding capabilities for semantic search and similarity analysis:
+
+### Ollama Setup and Installation
+
+#### 1. Install Ollama
+```bash
+# macOS/Linux
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Windows
+# Download from: https://ollama.ai/download
+
+# Docker
+docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+```
+
+#### 2. Start Ollama Service
+```bash
+# Start the Ollama service
+ollama serve
+
+# Or run in background
+ollama serve &
+```
+
+#### 3. Pull Required Models
+```bash
+# Pull the recommended embedding model (small, fast, accurate)
+ollama pull nomic-embed-text
+
+# Alternative models (larger, more powerful)
+ollama pull llama2
+ollama pull qwen2:7b
+```
+
+#### 4. Verify Installation
+```bash
+# Test Ollama connection
+make test-embeddings
+
+# Or manually test
+curl http://localhost:11434/api/tags
+```
+
+#### 5. Environment Configuration
+```bash
+# Add to your .env file (optional, defaults to localhost:11434)
+OLLAMA_URL=http://localhost:11434
+
+# Or set environment variable
+export OLLAMA_URL=http://localhost:11434
+```
+
+### Ollama Integration
+- **Local Embedding Generation**: Uses Ollama for local, privacy-preserving embedding generation
+- **Multiple Model Support**: Automatically detects available models (nomic-embed-text, llama2, etc.)
+- **Configurable Endpoint**: Supports custom Ollama URLs via `OLLAMA_URL` environment variable
+
+### DGraph Vector Storage
+- **Vector Type**: Uses DGraph's `vector` type with `@index(vector)` for efficient similarity search
+- **Metadata Storage**: Stores embedding model, source text, and dimensions for traceability
+- **Batch Processing**: Efficiently processes multiple nodes in single transactions
+
+### Supported Node Types
+- **Patients**: Demographics, medical history, and personal information
+- **Medical Visits**: Visit types, reasons, status, and clinical notes
+- **Allergies**: Allergens, severity, reactions, and clinical status
+- **Immunizations**: Vaccine details, administration, and clinical notes
+- **Conditions**: Medical conditions, severity, and clinical status
+- **Providers**: Medical staff information, specialties, and roles
+
+### Usage Examples
+```bash
+# Test embedding functionality
+make test-embeddings
+
+# Add embeddings to all nodes
+make add-embeddings
+
+# Manual execution
+uv run python scripts/test_embeddings.py
+uv run python scripts/add_embeddings.py
+```
+
+### Sample Vector Similarity Queries
+```dql
+# Find patients with similar medical conditions
+{
+  similar_patients(func: type(Patient)) @filter(ge(embedding, "query_embedding_vector", 0.8)) {
+    uid
+    name
+    age
+    ~has_condition {
+      condition_name
+      severity
+    }
+  }
+}
+
+# Find similar medical visits
+{
+  similar_visits(func: type(MedicalVisit)) @filter(ge(embedding, "visit_embedding_vector", 0.8)) {
+    uid
+    visit_type
+    reason
+    notes
+    embedding_model
+    embedding_dimensions
+  }
+}
+
+# Semantic search across all medical entities
+{
+  semantic_results(func: has(embedding)) @filter(ge(embedding, "search_query_vector", 0.7)) {
+    uid
+    dgraph.type
+    embedding_model
+    embedding_dimensions
+  }
+}
+```
+
+### Benefits for Medical Analysis
+- **Semantic Understanding**: Finds related concepts even with different terminology
+- **Clinical Decision Support**: Identifies similar patient cases and treatment patterns
+- **Research Insights**: Discovers hidden relationships in medical data
+- **Natural Language Search**: Enables conversational queries across medical records
+- **Scalable AI**: Foundation for advanced medical AI applications
+
+### Troubleshooting Ollama Issues
+
+#### Common Problems and Solutions
+
+**1. Ollama Service Not Running**
+```bash
+# Check if Ollama is running
+ps aux | grep ollama
+
+# Start Ollama if not running
+ollama serve
+```
+
+**2. Model Not Found**
+```bash
+# List available models
+ollama list
+
+# Pull missing model
+ollama pull nomic-embed-text
+```
+
+**3. Port Already in Use**
+```bash
+# Check what's using port 11434
+lsof -i :11434
+
+# Kill existing process or use different port
+export OLLAMA_URL=http://localhost:11435
+ollama serve -p 11435
+```
+
+**4. Memory Issues with Large Models**
+```bash
+# Use smaller models for embeddings
+ollama pull nomic-embed-text  # ~260MB
+ollama pull llama2:7b         # ~4GB
+
+# Check system resources
+free -h  # Linux
+top       # macOS
+```
+
+**5. Test Connection Manually**
+```bash
+# Test basic connectivity
+curl http://localhost:11434/api/tags
+
+# Test embedding generation
+curl -X POST http://localhost:11434/api/embeddings \
+  -H "Content-Type: application/json" \
+  -d '{"model": "nomic-embed-text", "prompt": "test"}'
+```
+
+#### Performance Optimization
+- **Use SSD storage** for faster model loading
+- **Allocate sufficient RAM** (at least 8GB for larger models)
+- **Consider GPU acceleration** if available (CUDA support)
+- **Batch processing** for large datasets (already implemented in the script)

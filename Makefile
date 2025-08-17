@@ -37,6 +37,12 @@ test-duplicate-prevention: ## Test duplicate prevention functionality
 add-geo-locations: ## Add geo location predicates to existing DGraph nodes
 	uv run python scripts/add_geo_locations.py
 
+add-embeddings: ## Add vector embeddings to DGraph nodes using Ollama
+	uv run python scripts/add_embeddings.py
+
+test-embeddings: ## Test vector embedding functionality with Ollama
+	uv run python scripts/test_embeddings.py
+
 test-geo-conversion: ## Test geo coordinate conversion functionality
 	uv run python scripts/test_geo_conversion.py
 
