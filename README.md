@@ -2,6 +2,8 @@
 
 This project demonstrates how to use BAML (Boundary ML) to extract structured medical data from unstructured clinical text and then import that data into DGraph for advanced graph-based querying and relationship analysis.
 
+![](img/fhir-patient-graph.png)
+
 ## Project Structure
 
 ```
@@ -194,6 +196,29 @@ The project organizes data files in a dedicated `data/` directory:
 
 This organization keeps the root directory clean and separates code from data files.
 
+##  Sample Notes Input
+
+```text
+	
+### Instruction:
+Patient Information:
+
+Mr. Colton Tracey McCullough, a male, born on the 5th of December, 1967, is an English (United States) speaking individual.
+
+Clinical Encounter:
+
+Drawing back to his medical history, Mr. McCullough had an eventful medical encounter on the 6th of November, 2018. The encounter took place at Fitchburg Outpatient Clinic, from 3:28:31 AM to 4:28:31 AM, Central European Time. Dr. Ted Reilly took the responsibility to manage and guide him through this medical encounter, where Mr. McCullough was identified as his prominent patient. The purpose of this encounter was to address prevailing health issues; primary among them was chronic congestive heart failure. This ambitious act marked a significant point in his diagnosis.
+
+The Outpatient Clinic:
+
+The encounter occurred at the esteemed medical institute, Fitchburg Outpatient Clinic, located at 881 Main Street, Fitchburg, MA 01420, United States of America. Being a sturdy pillar in the healthcare field, the Clinic serves as a highly respected healthcare provider in the community.
+
+Medical Procedure:
+
+Adding to his long medical chronicle, Mr. McCullough underwent a medical procedure on the same day of his encounter. This meticulous procedure, which was successfully completed, comprehensibly transpired from 3:28:31 AM to 03:43:31 AM, Central European Time.
+It's noteworthy that these aforementioned details cohesively form the medical history of Mr. McCullough in concordance with his clinical journey at the Fitchburg Outpatient Clinic.
+```
+
 ## Sample Output
 
 The system extracts structured data like:
@@ -363,3 +388,84 @@ For issues related to:
 - **DGraph**: Check [DGraph documentation](https://dgraph.io/docs/)
 - **uv**: Check [uv documentation](https://docs.astral.sh/uv/)
 - **This Project**: Open an issue in the repository
+
+## Graph RAG Enabled Medical Analysis Sample Topics
+
+### Age and Visit Patterns:
+
+- What is the age distribution of patients and how does it correlate with visit frequency?
+- Do older patients have more medical visits or different types of visits?
+- What's the average time between visits for patients with multiple encounters?
+
+### Gender-Based Healthcare Utilization:
+
+- Are there differences in visit types between male and female patients?
+- Do certain medical procedures or assessments show gender-based patterns?
+
+### Allergy Management & Safety
+#### Allergy Severity Analysis:
+
+- What's the distribution of allergy severities across the patient population?
+- Which allergens are associated with the most severe reactions?
+- How many patients have multiple allergies, and what are common combinations?
+
+#### Allergy Documentation Quality:
+
+- Which allergy records have complete documentation (confirmed dates, severity, reaction types)?
+- Are there gaps in allergy documentation that could impact patient safety?
+
+### Visit Analysis & Care Coordination
+#### Visit Type Patterns:
+
+- What are the most common types of medical visits?
+- Which patients have the most diverse visit types (indicating complex care needs)?
+- Are there seasonal patterns in immunizations or other visit types?
+
+#### Care Continuity:
+
+- Which patients have had visits spanning multiple years?
+- Are there patients with gaps in care that might need follow-up?
+- What's the typical duration of medical visits by type?
+
+### Temporal Healthcare Trends
+#### Historical Care Patterns:
+
+- How has the frequency of different visit types changed over time?
+- Are there patients with very old allergy confirmations that might need updating?
+- What's the timeline of care for patients with multiple visits?
+
+### Data Quality & Completeness
+#### Missing Information Analysis:
+
+- Which patients lack complete demographic information?
+- How many patients have visits but no associated provider information?
+- Are there patients missing critical allergy or contact information?
+
+### Geographic Healthcare Access
+#### Location-Based Care:
+
+- Are patients clustered around certain medical facilities?
+- What's the geographic distribution of different visit types?
+- Are there areas with limited healthcare access based on patient addresses?
+
+### Risk Stratification
+#### High-Risk Patient Identification:
+
+- Which patients have multiple severe allergies that require special monitoring?
+- Are there patients with concerning gaps between visits who might need outreach?
+- Which patients have complex medical histories (multiple visit types + allergies)?
+
+### Sample Queries You Could Run:
+
+- **"Find patients with multiple severe allergies and their most recent visit"**
+- **"Identify patients who haven't had visits in over 2 years"**
+- **"Analyze the relationship between patient age and number of allergies"**
+- **"Find all immunization visits and check if patients have documented allergies"**
+- **"Identify patients with incomplete allergy documentation"**
+- **"Find patients with the most complex care patterns (multiple visit types)"**
+
+### Clinical Decision Support Questions:
+
+- Are there patients with shellfish allergies who had visits but no allergy warnings documented?
+- Which patients might benefit from allergy testing based on their visit patterns?
+- Are there medication-related visits for patients with drug allergies?
