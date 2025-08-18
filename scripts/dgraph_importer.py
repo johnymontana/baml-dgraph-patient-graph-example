@@ -76,7 +76,6 @@ class DGraphMedicalImporter:
             start_time: string
             end_time: string
             timezone: string
-            status: string
             classification: string
             reason: string
             notes: string
@@ -135,6 +134,38 @@ class DGraphMedicalImporter:
         import_timestamp: string @index(exact) .
         extracted_at: string @index(exact) .
         extraction_version: string @index(exact) .
+        
+        # Allergy predicates
+        allergen: string @index(exact, fulltext) .
+        severity: string @index(exact) .
+        reaction_type: string @index(exact) .
+        confirmed_date: string @index(exact) .
+        
+        # Immunization predicates
+        lot_number: string @index(exact) .
+        manufacturer: string @index(exact) .
+        
+        # Substance predicates
+        substance_name: string @index(exact, fulltext) .
+        substance_type: string @index(exact) .
+        description: string @index(fulltext) .
+        active_ingredients: string @index(fulltext) .
+        dosage: string @index(exact) .
+        frequency: string @index(exact) .
+        
+        # Provider predicates
+        provider_name: string @index(exact) .
+        provider_id: string @index(exact) .
+        specialty: string @index(exact) .
+        role: string @index(exact) .
+        
+        # Organization predicates
+        organization_name: string @index(exact) .
+        organization_id: string @index(exact) .
+        organization_type: string @index(exact) .
+        phone: string @index(exact) .
+        website: string @index(exact) .
+        specialties: string @index(fulltext) .
         
         # Vector embedding predicates for AI-powered search
         embedding: float32vector @index(hnsw(metric:"cosine",exponent:"4")) .

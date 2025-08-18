@@ -351,7 +351,7 @@ The system creates a comprehensive graph schema with the following entity types 
 
 ## Querying Data
 
-After import, you can query the graph using DGraph's DQL syntax. Here are some practical examples:
+After import, you can query the graph using DGraph's DQL syntax. Here are some practical examples focused on medical analysis and patient allergies:
 
 ### Basic Patient Information Query
 
@@ -378,6 +378,71 @@ After import, you can query the graph using DGraph's DQL syntax. Here are some p
 }
 ```
 
+### Allergy-Focused Queries
+
+#### Find Patients with Multiple Allergies
+```dql
+{
+  patients_with_allergies(func: type(Patient)) @filter(has(has_allergy)) {
+    uid
+    name
+    age
+    gender
+    has_allergy {
+      uid
+      allergen
+      severity
+      reaction_type
+    }
+  }
+}
+```
+
+#### Allergy Analysis by Severity
+```dql
+{
+  allergy_severities(func: has(severity)) {
+    severity
+    count(uid)
+  }
+}
+```
+
+#### Food Allergy Analysis
+```dql
+{
+  food_allergies(func: has(allergen)) @filter(anyoftext(allergen, "food")) {
+    uid
+    allergen
+    severity
+    reaction_type
+    allergy_of {
+      uid
+      name
+      age
+    }
+  }
+}
+```
+
+#### Medication Allergy Analysis
+```dql
+{
+  medication_allergies(func: has(allergen)) @filter(anyoftext(allergen, "aspirin")) {
+    uid
+    allergen
+    severity
+    reaction_type
+    allergy_of {
+      uid
+      name
+      age
+      gender
+    }
+  }
+}
+```
+
 ### Complex Relationship Queries
 
 #### Find Patients with Multiple Visit Types
@@ -390,22 +455,6 @@ After import, you can query the graph using DGraph's DQL syntax. Here are some p
       visit_type
       start_time
       notes
-    }
-  }
-}
-```
-
-#### Allergy Analysis by Severity
-```dql
-{
-  allergies(func: eq(dgraph.type, "Allergy")) @filter(eq(severity, "severe")) {
-    allergen
-    severity
-    reaction_type
-    allergy_of {
-      name
-      age
-      gender
     }
   }
 }
@@ -469,6 +518,18 @@ After import, you can query the graph using DGraph's DQL syntax. Here are some p
   }
 }
 ```
+
+### Comprehensive Query Collection
+
+For a complete collection of 20+ medical analysis queries including allergy patterns, risk assessment, and clinical decision support, see **[DATABASE_QUERIES.md](DATABASE_QUERIES.md)**.
+
+The full query collection includes:
+- **Allergy Prevalence Analysis** - Environmental, food, and medication allergies
+- **Risk Stratification** - High-risk patients and prevention strategies  
+- **Clinical Decision Support** - Cross-referencing allergies with medical conditions
+- **Geographic Analysis** - Location-based allergy patterns
+- **Temporal Trends** - Seasonal and historical allergy data
+- **Quality Metrics** - Documentation completeness and consistency analysis
 
 ## Development
 
