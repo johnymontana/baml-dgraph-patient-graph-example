@@ -91,7 +91,7 @@ class EmbeddingProcessor:
         # Query for different node types
         query = """
         {
-            patients(func: type(Patient)) {
+            patients(func: type(Patient)) @filter(NOT has(embedding)) {
                 uid
                 name
                 patient_id
@@ -102,7 +102,7 @@ class EmbeddingProcessor:
                 primary_language
             }
             
-            visits(func: type(MedicalVisit)) {
+            visits(func: type(MedicalVisit)) @filter(NOT has(embedding)){
                 uid
                 visit_type
                 start_time
@@ -114,7 +114,7 @@ class EmbeddingProcessor:
                 notes
             }
             
-            allergies(func: type(Allergy)) {
+            allergies(func: type(Allergy)) @filter(NOT has(embedding)) {
                 uid
                 allergen
                 severity
@@ -124,7 +124,7 @@ class EmbeddingProcessor:
                 notes
             }
             
-            immunizations(func: type(Immunization)) {
+            immunizations(func: type(Immunization)) @filter(NOT has(embedding)) {
                 uid
                 vaccine_name
                 vaccine_type
@@ -135,7 +135,7 @@ class EmbeddingProcessor:
                 notes
             }
             
-            conditions(func: type(Condition)) {
+            conditions(func: type(Condition)) @filter(NOT has(embedding)) {
                 uid
                 condition_name
                 status
@@ -144,7 +144,7 @@ class EmbeddingProcessor:
                 notes
             }
             
-            providers(func: type(MedicalProvider)) {
+            providers(func: type(MedicalProvider)) @filter(NOT has(embedding)) {
                 uid
                 name
                 provider_id

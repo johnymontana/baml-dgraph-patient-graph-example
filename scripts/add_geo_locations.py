@@ -29,7 +29,7 @@ class GeoLocationProcessor:
         """Find all Address nodes that have both latitude and longitude values."""
         query = """
         {
-            addresses(func: type(Address)) @filter(has(latitude) AND has(longitude)) {
+            addresses(func: type(Address)) @filter(has(latitude) AND has(longitude) AND NOT has(location)) {
                 uid
                 latitude
                 longitude
