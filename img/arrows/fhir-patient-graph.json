@@ -54,124 +54,410 @@
   },
   "nodes": [
     {
-      "id": "n0",
+      "id": "n1",
       "position": {
-        "x": 0,
-        "y": 0
+        "x": 1034.9202704559436,
+        "y": 108.49923211711581
       },
       "caption": "",
-      "style": {},
       "labels": [
         "Patient"
       ],
-      "properties": {}
-    },
-    {
-      "id": "n1",
-      "position": {
-        "x": -291.769716887737,
-        "y": -205.00382869618002
+      "properties": {
+        "name": "string",
+        "patient_id": "string",
+        "age": "int",
+        "gender": "string",
+        "date_of_birth": "string",
+        "marital_status": "string",
+        "multiple_birth": "bool",
+        "primary_language": "string"
       },
-      "caption": "",
-      "style": {},
-      "labels": [
-        "Practitioner"
-      ],
-      "properties": {}
+      "style": {}
     },
     {
       "id": "n2",
       "position": {
-        "x": 211.10565683969855,
-        "y": -239.77519071421332
+        "x": 1065.493442322657,
+        "y": 458.20959676002917
       },
       "caption": "",
-      "style": {},
       "labels": [
-        "Allergy"
+        "MedicalVisit"
       ],
-      "properties": {}
+      "properties": {
+        "visit_type": "string",
+        "start_time": "string",
+        "end_time": "string",
+        "timezone": "string",
+        "classification": "string",
+        "reason": "string",
+        "notes": "string"
+      },
+      "style": {}
     },
     {
       "id": "n3",
       "position": {
-        "x": 415.82679166642384,
-        "y": -35.05405588748806
+        "x": 1480.711624061667,
+        "y": -6.472170713471627
       },
       "caption": "",
-      "style": {},
       "labels": [
-        "Substance"
+        "MedicalCondition"
       ],
-      "properties": {}
+      "properties": {
+        "condition_name": "string",
+        "status": "string",
+        "onset_date": "string",
+        "confirmed_date": "string"
+      },
+      "style": {}
     },
     {
       "id": "n4",
       "position": {
-        "x": 225.89570650164865,
-        "y": 225.89570650164862
+        "x": 1246.7376990307503,
+        "y": -171.4390377364855
       },
       "caption": "",
-      "style": {},
       "labels": [
-        "Address"
+        "Allergy"
       ],
-      "properties": {}
+      "properties": {
+        "allergen": "string",
+        "severity": "string",
+        "reaction_type": "string",
+        "substance_name": "string",
+        "substance_type": "string"
+      },
+      "style": {}
     },
     {
       "id": "n5",
       "position": {
-        "x": -252.1469189508796,
-        "y": 252.14691895087967
+        "x": 1480.711624061667,
+        "y": 277.85897914591976
       },
       "caption": "",
-      "style": {},
       "labels": [
         "Immunization"
       ],
-      "properties": {}
+      "properties": {
+        "vaccine_name": "string",
+        "vaccine_type": "string",
+        "administration_date": "string",
+        "lot_number": "string",
+        "manufacturer": "string"
+      },
+      "style": {}
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": 459.4111446709609,
+        "y": 556.6645104501865
+      },
+      "caption": "",
+      "labels": [
+        "Address"
+      ],
+      "properties": {
+        "street": "string",
+        "city": "string",
+        "state": "string",
+        "country": "string",
+        "zip_code": "string",
+        "timezone": "string",
+        "latitude": "float",
+        "longitude": "float",
+        "geocoded": "bool",
+        "location": "geo"
+      },
+      "style": {}
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": 40.780664682640584,
+        "y": 491.0951019715538
+      },
+      "caption": "",
+      "labels": [
+        "Organization"
+      ],
+      "properties": {
+        "organization_name": "string",
+        "organization_id": "string",
+        "organization_type": "string"
+      },
+      "style": {}
+    },
+    {
+      "id": "n8",
+      "position": {
+        "x": 703.8614214845452,
+        "y": -408.7383193195077
+      },
+      "caption": "ExtractionRecord",
+      "labels": [
+        "ExtractionRecord"
+      ],
+      "properties": {
+        "extracted_at": "string",
+        "extraction_version": "string",
+        "import_timestamp": "string",
+        "record_id": "string",
+        "source": "string",
+        "embedding": "float32vector",
+        "embedding_model": "string",
+        "embedding_dimensions": "string",
+        "embedding_text": "string"
+      },
+      "style": {}
+    },
+    {
+      "id": "n9",
+      "position": {
+        "x": 529,
+        "y": 896
+      },
+      "caption": "",
+      "labels": [
+        "Observation"
+      ],
+      "properties": {
+        "observation_type": "string",
+        "value": "string",
+        "unit": "string",
+        "interpretation": "string",
+        "issued_time": "string",
+        "effective_time": "string"
+      },
+      "style": {}
+    },
+    {
+      "id": "n10",
+      "position": {
+        "x": 1525.5693866300944,
+        "y": 800.9289986199092
+      },
+      "caption": "",
+      "labels": [
+        "Procedure"
+      ],
+      "properties": {
+        "procedure_type": "string",
+        "effective_time": "string",
+        "status": "string"
+      },
+      "style": {}
+    },
+    {
+      "id": "n11",
+      "position": {
+        "x": 325.42739053994796,
+        "y": 277.85897914591976
+      },
+      "caption": "",
+      "labels": [
+        "Provider"
+      ],
+      "properties": {
+        "provider_name": "string",
+        "provider_id": "string",
+        "specialty": "string",
+        "specialties": "string",
+        "role": "string"
+      },
+      "style": {}
+    },
+    {
+      "id": "n12",
+      "position": {
+        "x": 438.85677327676433,
+        "y": 56.27624471285965
+      },
+      "caption": "",
+      "labels": [
+        "ContactInfo"
+      ],
+      "properties": {
+        "phone": "string",
+        "website": "string"
+      },
+      "style": {}
+    },
+    {
+      "id": "n13",
+      "position": {
+        "x": 1004.3470985892302,
+        "y": -241.21113252579755
+      },
+      "caption": "SocialHistory",
+      "labels": [
+        "SocialHistory"
+      ],
+      "properties": {
+        "category": "string",
+        "description": "string",
+        "status": "string"
+      },
+      "style": {}
     }
   ],
   "relationships": [
     {
       "id": "n0",
-      "type": "TREATS",
-      "style": {},
-      "properties": {},
       "fromId": "n1",
-      "toId": "n0"
+      "toId": "n2",
+      "type": "HAS_VISIT",
+      "properties": {},
+      "style": {}
     },
     {
       "id": "n1",
-      "type": "EXPERIENCES",
-      "style": {},
+      "fromId": "n1",
+      "toId": "n3",
+      "type": "HAS_CONDITION",
       "properties": {},
-      "fromId": "n0",
-      "toId": "n2"
+      "style": {}
     },
     {
       "id": "n2",
-      "type": "CAUSES",
-      "style": {},
+      "fromId": "n1",
+      "toId": "n4",
+      "type": "HAS_ALLERGY",
       "properties": {},
-      "fromId": "n3",
-      "toId": "n2"
+      "style": {}
     },
     {
       "id": "n3",
-      "type": "LIVES_IN",
-      "style": {},
+      "fromId": "n1",
+      "toId": "n5",
+      "type": "HAS_IMMUNIZATION",
       "properties": {},
-      "fromId": "n0",
-      "toId": "n4"
+      "style": {}
     },
     {
       "id": "n4",
-      "type": "HAS_IMMUNIZATION",
-      "style": {},
+      "fromId": "n1",
+      "toId": "n6",
+      "type": "LIVES_IN",
       "properties": {},
-      "fromId": "n0",
-      "toId": "n5"
+      "style": {}
+    },
+    {
+      "id": "n5",
+      "fromId": "n1",
+      "toId": "n7",
+      "type": "TREATED_AT",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n6",
+      "fromId": "n1",
+      "toId": "n11",
+      "type": "TREATED_BY",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n7",
+      "fromId": "n1",
+      "toId": "n9",
+      "type": "HAS_OBSERVATION",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n8",
+      "fromId": "n1",
+      "toId": "n10",
+      "type": "HAS_PROCEDURE",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n9",
+      "fromId": "n1",
+      "toId": "n12",
+      "type": "HAS_CONTACT_INFO",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n10",
+      "fromId": "n1",
+      "toId": "n13",
+      "type": "HAS_SOCIAL_HISTORY",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n15",
+      "fromId": "n2",
+      "toId": "n9",
+      "type": "INCLUDES_OBSERVATION",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n16",
+      "fromId": "n2",
+      "toId": "n10",
+      "type": "INCLUDES_PROCEDURE",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n17",
+      "fromId": "n2",
+      "toId": "n5",
+      "type": "INCLUDES_IMMUNIZATION",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n19",
+      "fromId": "n6",
+      "toId": "n7",
+      "type": "LOCATION_OF_ORGANIZATION",
+      "properties": {},
+      "style": {
+        "arrow-color": "#666666"
+      }
+    },
+    {
+      "id": "n20",
+      "fromId": "n6",
+      "toId": "n2",
+      "type": "LOCATION_OF_VISIT",
+      "properties": {},
+      "style": {
+        "arrow-color": "#666666"
+      }
+    },
+    {
+      "id": "n21",
+      "fromId": "n6",
+      "toId": "n11",
+      "type": "LOCATION_OF_PROVIDER",
+      "properties": {},
+      "style": {
+        "arrow-color": "#666666"
+      }
+    },
+    {
+      "id": "n22",
+      "fromId": "n6",
+      "toId": "n10",
+      "type": "LOCATION_OF_PROCEDURE",
+      "properties": {},
+      "style": {
+        "arrow-color": "#666666"
+      }
     }
   ]
 }
